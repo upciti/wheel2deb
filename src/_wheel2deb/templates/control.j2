@@ -1,0 +1,14 @@
+Source: {{ package.name }}
+Section: python
+Priority: optional
+Maintainer: {{ ctx.maintainer_name }} <{{ ctx.maintainer_email }}>
+Build-Depends: {{ package.build_deps|list|sort|join(', ') }}
+Standards-Version: 3.9.6
+
+Package: {{ package.name }}
+Architecture: {{ package.arch }}
+Depends: ${misc:Depends}, ${shlibs:Depends}, {{ package.depends|sort|join(', ') }}
+Description: {{ package.description }}
+ {{ package.extended_desc }}
+{% if package.homepage %}Homepage: {{ package.homepage }}{% endif %}
+{% if ctx.provides %}Provides: {{ ctx.provides|sort|join(', ') }}{% endif %}

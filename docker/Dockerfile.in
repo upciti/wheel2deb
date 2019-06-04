@@ -1,0 +1,41 @@
+FROM _IMAGE_
+LABEL maintainer="fyhertz@gmail.com"
+
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+
+COPY dh-autoreconf* /
+RUN dpkg -i dh-autoreconf* && rm dh-autoreconf*
+
+RUN dpkg --add-architecture armhf \
+ && (apt-get -yq update || true) \
+ && apt-get -yq --no-install-suggests --no-install-recommends install \
+    debhelper \
+    python3-minimal \
+    devscripts \
+    fakeroot \
+    libc6:armhf \
+    lintian \
+    apt-file \
+    binutils-arm-linux-gnueabihf \
+    python3-apt \
+    curl \
+ && (python3 -c "import distutils.util" || apt-get install -yq python3-distutils) \
+ && apt-get clean
+
+RUN apt-file update
+
+RUN curl -k https://bootstrap.pypa.io/get-pip.py > /tmp/get-pip.py \
+    && chmod +x /tmp/get-pip.py \
+    && python3 /tmp/get-pip.py \
+    && rm /tmp/get-pip.py
+
+COPY ./wheel2deb*.whl /
+
+RUN pip3 install $(find ./ -name wheel2deb*.whl) \
+ && rm /wheel2deb*
+
+VOLUME /data
+WORKDIR /data
+
+ENTRYPOINT ["wheel2deb"]

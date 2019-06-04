@@ -1,0 +1,16 @@
+#!/bin/sh
+set -e
+
+#WHEEL2DEB#
+
+{% if package.pyvers.major == 2 %}
+{% set pycompile = 'pycompile' %}
+{% else %}
+{% set pycompile = 'py3compile' %}
+{% endif %}
+
+if which {{ pycompile }} >/dev/null 2>&1; then
+	{{ pycompile }} -p {{ package.name }}
+fi
+
+#DEBHELPER#

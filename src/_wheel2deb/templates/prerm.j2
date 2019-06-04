@@ -1,0 +1,19 @@
+#!/bin/sh
+set -e
+
+#WHEEL2DEB#
+
+{% if package.pyvers.major == 2 %}
+{% set pyclean = 'pyclean' %}
+{% else %}
+{% set pyclean = 'py3clean' %}
+{% endif %}
+
+if which {{ pyclean }} >/dev/null 2>&1; then
+	{{ pyclean }} -p {{ package.name }}
+else
+	dpkg -L {{ package.name }} | perl -ne 's,/([^/]*)\.py$,/__pycache__/\1.*, or next; unlink $_ or die $! foreach glob($_)'
+	find {{ package.install_path }} -type d -name __pycache__ -empty -print0 | xargs --null --no-run-if-empty rmdir
+fi
+
+#DEBHELPER#
