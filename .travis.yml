@@ -1,0 +1,18 @@
+language: python
+
+dist: xenial
+
+services:
+  - docker
+
+install:
+  - pip install pytest pytest-cov coveralls
+  - pip install -e .
+
+script:
+  - pytest --cov
+  - make images
+  - make test
+
+after_success:
+  - coveralls

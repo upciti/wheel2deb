@@ -10,6 +10,7 @@ RUN dpkg -i dh-autoreconf* && rm dh-autoreconf*
 RUN dpkg --add-architecture armhf \
  && (apt-get -yq update || true) \
  && apt-get -yq --no-install-suggests --no-install-recommends install \
+    build-essential \
     debhelper \
     python3-minimal \
     devscripts \
@@ -33,6 +34,7 @@ RUN curl -k https://bootstrap.pypa.io/get-pip.py > /tmp/get-pip.py \
 COPY ./wheel2deb*.whl /
 
 RUN pip3 install $(find ./ -name wheel2deb*.whl) \
+ && pip3 install pytest \
  && rm /wheel2deb*
 
 VOLUME /data

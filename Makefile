@@ -24,13 +24,27 @@ images: bdist
 check:
 	@flake8 src
 
+test:
+	$(call run_tests,wheel2deb:jessie)
+	$(call run_tests,wheel2deb:stretch)
+	$(call run_tests,wheel2deb:buster)
+
 clean:
-	@rm -Rf src/*.egg-info .cache .coverage .tox build dist docs/build htmlcov
+	@rm -Rf src/*.egg-info .pytest_cache .cache .coverage .tox build dist docs/build htmlcov
 	@find -depth -type d -name __pycache__ -exec rm -Rf {} \;
 	@find -type f -name '*.pyc' -delete
 
 .PHONY: default bdist images clean
 
 define build_image
-	cat docker/Dockerfile.in | sed s/_IMAGE_/$(1)/ | docker build -f - -t wheel2deb:$(2) dist
+	@cat docker/Dockerfile.in | sed s/_IMAGE_/$(1)/ | docker build -f - -t wheel2deb:$(2) dist
+endef
+
+define run_tests
+	@docker run -ti -v $(CURDIR):/data --entrypoint "" $(1) /bin/bash -c " \
+		pip install -e . \
+		&& mkdir /testing \
+		&& cp -r testing/*.py /testing \
+		&& cd /testing \
+		&& py.test"
 endef

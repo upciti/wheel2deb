@@ -156,7 +156,8 @@ class SourcePackage:
             'rules.j2',
             file=self.debian / 'rules',
             shlibdeps_params=''.join(
-                [' -l' + str(self.src / x) for x in self.wheel.record.lib_dirs]))
+                [' -l' + str(self.src / x)
+                 for x in self.wheel.record.lib_dirs]))
 
     def copyright(self):
         """
@@ -169,7 +170,7 @@ class SourcePackage:
         copyrights = set()
 
         if not licenses:
-            logger.warning('no licenses found !')
+            logger.warning('no license found !')
             return
 
         # gather copyrights from all licenses
@@ -274,7 +275,8 @@ class SourcePackage:
 
         if self.wheel.record.lib_dirs and not shlibdeps:
             args = ['dpkg-shlibdeps'] \
-                   + ['-l'+str(self.src/x) for x in self.wheel.record.lib_dirs] \
+                   + ['-l'+str(self.src/x)
+                      for x in self.wheel.record.lib_dirs] \
                    + [str(self.src/x) for x in self.wheel.record.libs]
             output, code = shell(args, cwd=self.root)
             missing_libs.update(DPKG_SHLIBS_RE.findall(output, re.MULTILINE))
@@ -310,4 +312,3 @@ class SourcePackage:
                 logger.info("detected dependencies: %s", shlibdeps)
 
         self.build_deps.update({p+':'+self.arch for p in shlibdeps})
-

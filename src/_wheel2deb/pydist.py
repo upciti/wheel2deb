@@ -2,6 +2,7 @@ import os
 import attr
 import re
 import glob
+from functools import lru_cache
 from pathlib import Path
 from packaging import specifiers, version
 from packaging.requirements import Requirement
@@ -9,7 +10,6 @@ from wheel.wheelfile import WheelFile
 from pkginfo import Distribution
 
 from . import logger as logging
-from .tools import memoized
 from .pyvers import VersionRange, Version
 from .entrypoints import parse_entry_points
 
@@ -74,17 +74,17 @@ class Metadata(Distribution):
 class Wheel:
     def __init__(self, filepath, extract_path=None):
 
-        if not os.path.exists(filepath):
-            raise ValueError('No such file: %s' % filepath)
-
-        if not filepath.endswith('.whl'):
-            raise ValueError('Not a known wheel archive format: %s' % filepath)
-
         # relative path to wheel file
-        self.filepath = filepath
-        self.filename = os.path.basename(filepath)
+        self.filepath = Path(filepath)
+        self.filename = self.filepath.name
         self.extract_path = Path(extract_path) \
             if extract_path else Path('/tmp') / self.filename[:-4]
+
+        if not filepath.exists():
+            raise ValueError('No such file: %s' % filepath)
+
+        if not self.filename.endswith('.whl'):
+            raise ValueError('Not a known wheel archive format: %s' % filepath)
 
         # parse wheel name
         # https://www.python.org/dev/peps/pep-0425
@@ -110,12 +110,12 @@ class Wheel:
             req.name = normalize_name(req.name)
         return reqs
 
-    @memoized
+    @lru_cache(maxsize=None)
     def run_requires(self, pyvers):
         env = {'python_version': str(pyvers)}
         return self.requires(env)
 
-    @memoized
+    @lru_cache(maxsize=None)
     def version_range(self, pyvers):
         m = re.search(r'(\d)(\d)', self.python_tag)
         if m:
@@ -144,7 +144,7 @@ class Wheel:
         # supported by that wheel
         return None
 
-    @memoized
+    @lru_cache(maxsize=None)
     def version_supported(self, pyvers):
         m = re.search(r'(?:py|cp)%s' % pyvers.major, self.python_tag)
         if not m:
@@ -160,7 +160,7 @@ class Wheel:
         return python_version in requires_python_specifier
 
     @property
-    @memoized
+    @lru_cache(maxsize=None)
     def cpython_supported(self):
         if re.search(r'(?:py|cp)', self.python_tag):
             return True
@@ -172,7 +172,7 @@ class Wheel:
         """
 
         if not self.extract_path.exists():
-            with WheelFile(self.filepath) as wf:
+            with WheelFile(str(self.filepath)) as wf:
                 logger.debug("unpacking wheel to: %s..." % self.extract_path)
                 wf.extractall(str(self.extract_path))
 

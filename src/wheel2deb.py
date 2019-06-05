@@ -1,7 +1,5 @@
-import glob
 import argparse
 import os
-import sys
 import time
 from pathlib import Path
 from logging import INFO, DEBUG
@@ -28,7 +26,7 @@ def parse_args(argv):
     p.add_argument('-e', '--exclude', nargs='+',
                    help='List of wheel names not to convert')
     p.add_argument('-o', '--output', default='output',
-                   help='Output directory (defaults to current directory)')
+                   help='Output directory (defaults to ./output)')
     p.add_argument('--python-version',
                    help='cpython version on the target debian distribution '
                         '(defaults to the platform version)')
@@ -73,11 +71,11 @@ def debianize(args):
 
     # list all python wheels in search paths
     files = []
-    for path in args.search_paths:
-        files.extend(glob.glob(os.path.join(path, '*.whl')))
-    files = sorted(files, key=lambda x: os.path.basename(x))
+    for path in [Path(path) for path in args.search_paths]:
+        files.extend(path.glob('*.whl'))
+    files = sorted(files, key=lambda x: x.name)
 
-    filenames = list(map(os.path.basename, files))
+    filenames = list(map(lambda x: x.name, files))
     if not args.include:
         args.include = filenames
 
@@ -96,7 +94,7 @@ def debianize(args):
 
     wheels = []
     for file in files:
-        path = args.output / file[:-4] / 'src'
+        path = args.output / file.name[:-4] / 'src'
         wheel = Wheel(file, path)
         ctx = settings.get_ctx(wheel.filename)
 
@@ -154,7 +152,7 @@ def build(argv):
         tools.install_packages(build_deps)
 
     for path in src_packages:
-        logger.task('Building debian source package in %s', path)
+        logger.task('Building debian source package %s', path)
         tools.build_package(path)
 
 
@@ -181,8 +179,8 @@ def main():
                    logging.get_warning_counter(), logging.get_error_counter(),
                    round(time.time()-start_time, 3))
 
-    if logging.get_error_counter():
-        exit(1)
+    # the return code is the number of errors
+    exit(logging.get_error_counter())
 
 
 if __name__ == '__main__':
