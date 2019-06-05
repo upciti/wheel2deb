@@ -11,7 +11,7 @@ class Version:
     @classmethod
     def from_str(cls, version_str):
         m = re.match(r'(\d)(?:\.(\d))?(?:\.(\d))?', version_str)
-        v = list(map(lambda i: int(i) if i else 0, m.groups()))
+        v = [int(i) if i else 0 for i in m.groups()]
         return cls(v[0], v[1], v[2])
 
     def inc(self):

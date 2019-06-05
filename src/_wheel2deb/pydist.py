@@ -104,8 +104,7 @@ class Wheel:
         elif env and 'extra' not in env:
             env['extra'] = ''
         reqs = [Requirement(req) for req in self.metadata.requires_dist]
-        reqs = filter(lambda r: not r.marker or r.marker.evaluate(env), reqs)
-        reqs = list(reqs)
+        reqs = [r for r in reqs if not r.marker or r.marker.evaluate(env)]
         for req in reqs:
             req.name = normalize_name(req.name)
         return reqs

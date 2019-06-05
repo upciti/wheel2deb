@@ -10,7 +10,7 @@ def parse_entry_points(content):
 
     entry_points = {}
     for section in config:
-        x = list(map(lambda k: '%s=%s' % k, config.items(section)))
+        x = ['%s=%s' % k for k in config.items(section)]
         if x:
             entry_points[section] = x
 
