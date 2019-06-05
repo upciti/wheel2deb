@@ -50,8 +50,8 @@ def parse_args(argv):
     args = p.parse_args(argv)
 
     if args.map:
-        split = partial(str.split, sep='=', maxsplit=2)
-        args.map = {x: y for x, y in list(map(split, args.map))}
+        split_part = partial(str.split, sep='=', maxsplit=2)
+        args.map = {x: y for x, y in [split_part(x) for x in args.map]}
 
     args.output = Path(args.output)
 
@@ -77,17 +77,15 @@ def debianize(args):
         files.extend(glob.glob(os.path.join(path, '*.whl')))
     files = sorted(files, key=lambda x: os.path.basename(x))
 
-    filenames = list(map(os.path.basename, files))
+    filenames = [os.path.basename(x) for x in files]
     if not args.include:
         args.include = filenames
 
     # remove excluded wheels
     if args.exclude:
-        args.include = \
-            list(filter(lambda x: x not in args.exclude, args.include))
-
+        args.include = [x for x in args.include if x not in args.exclude]
     # fail if some input wheel was not found in search paths
-    missing = list(filter(lambda x: x not in filenames, args.include))
+    missing = [x for x in args.include if x not in filenames]
     if missing:
         logger.critical('File(s) not found: %s', ', '.join(missing))
         exit(1)
