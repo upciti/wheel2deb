@@ -1,8 +1,10 @@
 ## wheel2deb: python wheel to debian package converter
 
 [![Build Status](https://travis-ci.org/parkoview/wheel2deb.svg?branch=master)](https://travis-ci.org/parkoview/wheel2deb)
+[![Coverage Status](https://coveralls.io/repos/github/parkoview/wheel2deb/badge.svg?branch=master)](https://coveralls.io/github/parkoview/wheel2deb?branch=master)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/581a27ffb7cc4907b52e27430abdc26d)](https://www.codacy.com/app/simon-parkoview/wheel2deb?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=parkoview/wheel2deb&amp;utm_campaign=Badge_Grade)
 
-**wheel2deb basically takes a list of wheels as input and produces a list of debian CPython packages (those prefixed with python- or python3-).**
+wheel2deb basically takes a list of wheels as input and produces a list of debian binary CPython packages (those prefixed with python- or python3-).
 
 [![asciicast](https://asciinema.org/a/249779.svg)](https://asciinema.org/a/249779)
 
@@ -57,7 +59,7 @@ Check [setup.py](setup.py) for python requirements
 Use `wheel2deb --help` and `wheel2deb build --help` to check all supported options
 
 | Option                    | Description                                                                                         |
-| --------------------------| --------------------------------------------------------------------------------------------------- |
+| ------------------------- | --------------------------------------------------------------------------------------------------- |
 | -v                        | Enable debug logs.                                                                                  |
 | -x                        | List of search paths where to look for python wheels. Defaults to current directory. Not recursive. |
 | -o                        | Output directory where debian source packages will be produced. Defaults to ./output                |

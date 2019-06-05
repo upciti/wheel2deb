@@ -6,13 +6,11 @@ services:
   - docker
 
 install:
-  - pip install pytest pytest-cov coveralls
-  - pip install -e .
+  - pip install coveralls
 
 script:
-  - pytest --cov
-  - make images
-  - make test
+  - make tests
 
 after_success:
+  - sed -i "s#/data#/home/travis/build/parkoview/wheel2deb#g" .coverage
   - coveralls

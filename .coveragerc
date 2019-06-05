@@ -1,0 +1,13 @@
+[run]
+include =
+  src/*
+  testing/*
+  */lib/python*/site-packages/_wheel2deb/*
+  */lib/python*/site-packages/wheel2deb.py
+parallel = 1
+branch = 1
+
+[paths]
+source =
+  src/
+  */lib/python*/site-packages/

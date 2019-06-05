@@ -1,6 +1,10 @@
 MAKE := $(MAKE) --no-print-directory
 SHELL = bash
 
+DEBIAN_DISTS := jessie
+
+map = $(foreach a,$(2),$(call $(1),$(a)))
+
 default:
 	@echo "Makefile for wheel2deb"
 	@echo
@@ -10,6 +14,7 @@ default:
 	@echo '    make bdist      build python wheel'
 	@echo '    make images     build docker images'
 	@echo '    make clean      cleanup all temporary files'
+	@echo '    make tests      run pytest in docker images'
 	@echo
 
 bdist:
@@ -17,17 +22,19 @@ bdist:
 
 images: bdist
 	@cp docker/dh-autoreconf_* dist/
-	$(call build_image,debian:jessie-slim,jessie)
-	$(call build_image,debian:stretch-slim,stretch)
-	$(call build_image,debian:buster-slim,buster)
+	$(call map,build_debian_image,$(DEBIAN_DISTS))
 
 check:
 	@flake8 src
 
-test:
-	$(call run_tests,wheel2deb:jessie)
-	$(call run_tests,wheel2deb:stretch)
-	$(call run_tests,wheel2deb:buster)
+tests:
+	$(eval images := $(foreach a,$(DEBIAN_DISTS),parkoview/wheel2deb:$(a)))
+	$(call map,run_tests,$(images))
+
+publish:
+	$(foreach a,$(DEBIAN_DISTS),\
+		docker tag wheel2deb:$(a) parkoview/wheel2deb:$(a);)
+	@docker push parkoview/wheel2deb
 
 clean:
 	@rm -Rf src/*.egg-info .pytest_cache .cache .coverage .tox build dist docs/build htmlcov
@@ -36,15 +43,13 @@ clean:
 
 .PHONY: default bdist images clean
 
-define build_image
-	@cat docker/Dockerfile.in | sed s/_IMAGE_/$(1)/ | docker build -f - -t wheel2deb:$(2) dist
+define build_debian_image
+	cat docker/Dockerfile.in | sed s/_IMAGE_/debian:$(1)-slim/ | docker build -f - -t wheel2deb:$(1) dist;
 endef
 
 define run_tests
-	@docker run -ti -v $(CURDIR):/data --entrypoint "" $(1) /bin/bash -c " \
+	docker run -ti -v $(CURDIR):/data --entrypoint "" $(1) /bin/bash -c " \
 		pip install -e . \
-		&& mkdir /testing \
-		&& cp -r testing/*.py /testing \
-		&& cd /testing \
-		&& py.test"
+		&& rm -rf testing/__pycache__ \
+		&& py.test --cov";
 endef
