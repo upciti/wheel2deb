@@ -8,13 +8,12 @@ services:
 before_cache:
   # https://github.com/travis-ci/travis-ci/issues/5358
   # Save tagged docker images
-  - >
-    mkdir -p $HOME/docker && docker images -a --filter='dangling=false' --format '{{.Repository}}:{{.Tag}} {{.ID}}'
-    | xargs -n 2 -t sh -c 'test -e $HOME/docker/$1.tar.gz || docker save $0 | gzip -2 > $HOME/docker/$1.tar.gz'
+  - mkdir -p $HOME/docker
+  - docker save $(docker images -q) -o $HOME/docker/images.tar
 
 before_install:
   # Load cached docker images
-  - if [[ -d $HOME/docker ]]; then ls $HOME/docker/*.tar.gz | xargs -I {file} sh -c "zcat {file} | docker load"; fi
+  - docker load -i $HOME/docker/images.tar || true
 
 install:
   - pip install coveralls
