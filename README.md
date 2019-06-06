@@ -36,16 +36,30 @@ python3 -c "import numpy; numpy.test()"
 
 ## Requirements
 
-wheel2deb uses python3-apt to search for debian packages, dpkg-shlibdeps to calculate shared library dependencies and apt-file to search packages providing missing shared library dependencies:
+`wheel2deb` uses python3-apt to search for debian packages, dpkg-shlibdeps to calculate shared library dependencies and apt-file to search packages providing shared library dependencies. `wheel2deb build` requires the usual tools to build a debian package:
 ```sh
 apt update
-apt install python3-apt apt-file dpkg-dev fakeroot
+apt install python3-apt apt-file dpkg-dev fakeroot build-essential devscripts debhelper
 apt-file update
 ```
 
-If you are converting a pure python wheel, you don't actually need apt-file and dpkg-dev
+If you want to cross build packages for ARM, you will also need to install `binutils-arm-linux-gnueabihf`
+
+Converting pure python wheels, don't actually requires apt-file and dpkg-dev
 
 Check [setup.py](setup.py) for python requirements
+
+Keep in mind that you should build debian packages on the same distribution that you intend to install them. wheel2deb will not warn you about ABI compatibility issues.
+
+## Installation
+
+wheel2deb is available from [pypi](https://pypi.org/project/wheel2deb/):
+
+`pip install wheel2deb`
+
+Docker images for jessie, stretch and buster are also available from the [docker hub](https://cloud.docker.com/u/parkoview/repository/docker/parkoview/wheel2deb):
+ 
+`docker run -ti -v $(pwd):/data wheel2deb:stretch`
 
 ## Features
 
