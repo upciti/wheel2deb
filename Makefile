@@ -27,7 +27,7 @@ images: bdist
 check:
 	@flake8 src
 
-tests:
+tests: bdist
 	$(eval images := $(foreach a,$(DEBIAN_DISTS),wheel2deb:$(a)))
 	$(call map,run_tests,$(images))
 
@@ -49,7 +49,7 @@ endef
 
 define run_tests
 	docker run -ti -v $(CURDIR):/data --entrypoint "" $(1) /bin/bash -c " \
-		pip install -e . \
+		pip install dist/*.whl \
 		&& rm -rf testing/__pycache__ \
 		&& py.test --cov";
 endef
