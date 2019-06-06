@@ -28,7 +28,7 @@ def shell(args, **kwargs):
 def install_packages(packages):
     args = 'apt-get -y --no-install-recommends install'.split(' ') + \
            list(packages)
-    output, returncode = shell(args)
+    returncode = shell(args)[1]
 
     if returncode:
         logger.critical('failed to install dependencies ☹. did you add the '

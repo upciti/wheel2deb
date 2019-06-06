@@ -278,7 +278,7 @@ class SourcePackage:
                    + ['-l'+str(self.src/x)
                       for x in self.wheel.record.lib_dirs] \
                    + [str(self.src/x) for x in self.wheel.record.libs]
-            output, code = shell(args, cwd=self.root)
+            output = shell(args, cwd=self.root)[0]
             missing_libs.update(DPKG_SHLIBS_RE.findall(output, re.MULTILINE))
 
             parse_substvars()
@@ -289,7 +289,7 @@ class SourcePackage:
 
             # search packages providing those libs
             for lib in missing_libs:
-                output, code = shell(['apt-file', 'search', lib])
+                output = shell(['apt-file', 'search', lib])[0]
                 packages = set(APT_FILE_RE.findall(output))
 
                 # remove dbg packages
@@ -299,7 +299,7 @@ class SourcePackage:
                     logger.warning("did not find a package providing %s", lib)
                 else:
                     # we pick the package with the shortest name
-                    packages = sorted(packages, key=lambda i: len(i))
+                    packages = sorted(packages, key=len)
                     shlibdeps.add(packages[0])
 
                 if len(packages) > 1:
