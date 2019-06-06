@@ -24,6 +24,9 @@ script:
   - make tests
 
 after_success:
+  # fix files path or coveralls complains about not finding them (meh)
+  # the issue is that coverage runs in a container and not coveralls
+  - sed -i "s#/usr/local/lib/python[0-9\.]*/dist-packages#/data/src#g" .coverage
   - sed -i "s#/data#/home/travis/build/parkoview/wheel2deb#g" .coverage
   - coveralls
 
