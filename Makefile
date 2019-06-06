@@ -1,7 +1,7 @@
 MAKE := $(MAKE) --no-print-directory
 SHELL = bash
 
-DEBIAN_DISTS := jessie
+DEBIAN_DISTS := jessie stretch buster
 
 map = $(foreach a,$(2),$(call $(1),$(a)))
 
@@ -28,7 +28,7 @@ check:
 	@flake8 src
 
 tests:
-	$(eval images := $(foreach a,$(DEBIAN_DISTS),parkoview/wheel2deb:$(a)))
+	$(eval images := $(foreach a,$(DEBIAN_DISTS),wheel2deb:$(a)))
 	$(call map,run_tests,$(images))
 
 publish:
