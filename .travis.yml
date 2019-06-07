@@ -10,6 +10,7 @@ before_cache:
   # Save tagged docker images
   - mkdir -p $HOME/docker
   - docker save $(docker images -q) -o $HOME/docker/images.tar
+  - ls -lh $HOME/docker
 
 before_install:
   # Load cached docker images

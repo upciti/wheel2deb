@@ -43,13 +43,11 @@ apt install python3-apt apt-file dpkg-dev fakeroot build-essential devscripts de
 apt-file update
 ```
 
-If you want to cross build packages for ARM, you will also need to install `binutils-arm-linux-gnueabihf`
+If you want to cross build packages for ARM, you will also need to install `binutils-arm-linux-gnueabihf`.
 
-Converting pure python wheels, don't actually requires apt-file and dpkg-dev
+Converting pure python wheels, don't actually requires apt-file and dpkg-dev.
 
-Check [setup.py](setup.py) for python requirements
-
-Keep in mind that you should build debian packages on the same distribution that you intend to install them. wheel2deb will not warn you about ABI compatibility issues.
+Keep in mind that you should only convert wheels that have been built for your distribution and architecture. wheel2deb will not warn you about ABI compatibility issues.
 
 ## Installation
 

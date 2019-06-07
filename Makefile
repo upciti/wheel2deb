@@ -15,6 +15,7 @@ default:
 	@echo '    make images     build docker images'
 	@echo '    make clean      cleanup all temporary files'
 	@echo '    make tests      run pytest in docker images'
+	@echo '    make publish    push release to pypi'
 	@echo
 
 bdist:
@@ -31,10 +32,13 @@ tests: bdist
 	$(eval images := $(foreach a,$(DEBIAN_DISTS),wheel2deb:$(a)))
 	$(call map,run_tests,$(images))
 
-publish:
+push_images:
 	$(foreach a,$(DEBIAN_DISTS),\
 		docker tag wheel2deb:$(a) parkoview/wheel2deb:$(a);)
 	@docker push parkoview/wheel2deb
+
+publish: clean bdist
+	twine upload dist/*.whl
 
 clean:
 	@rm -Rf src/*.egg-info .pytest_cache .cache .coverage .tox build dist docs/build htmlcov
