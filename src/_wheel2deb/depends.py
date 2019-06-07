@@ -53,6 +53,8 @@ def search_python_deps(ctx, wheel, extras=None):
     :return: list of debian packages
     """
 
+    extras = extras or []
+
     # keep only requirements that match the environment
     # https://www.python.org/dev/peps/pep-0508/#environment-markers
     requirements = wheel.run_requires(ctx.python_version)

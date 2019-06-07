@@ -2,6 +2,7 @@ import os
 import attr
 import re
 import glob
+from tempfile import mkdtemp
 from functools import lru_cache
 from pathlib import Path
 from packaging import specifiers, version
@@ -78,7 +79,7 @@ class Wheel:
         self.filepath = Path(filepath)
         self.filename = self.filepath.name
         self.extract_path = Path(extract_path) \
-            if extract_path else Path('/tmp') / self.filename[:-4]
+            if extract_path else Path(mkdtemp()) / self.filename[:-4]
 
         if not filepath.exists():
             raise ValueError('No such file: %s' % filepath)

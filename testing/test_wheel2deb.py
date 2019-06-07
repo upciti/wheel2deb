@@ -26,33 +26,19 @@ def test_help():
             assert e.code == 0
 
 
-def test_conversion(tmp_path):
+def test_conversion(tmp_path, wheel_path):
     """ Test the conversion of a dummy wheel foobar """
 
     os.chdir(str(tmp_path))
-    (tmp_path / 'foobar').mkdir()
-
-    with open('foobar/__init__.py', 'w') as f:
-        f.write('')
-
-    with open('foobar/test.py', 'w') as f:
-        f.write('print("Hello world !")')
-
-    # create dummy wheel
-    with patch.object(sys, 'argv', ['', 'bdist_wheel']):
-        from setuptools import setup
-        setup(name='foobar',
-              author='John Doe',
-              packages=['foobar'],
-              version='0.1.0')
 
     # convert wheel to debian source package
-    with patch.object(sys, 'argv', ['', '-x', 'dist']):
+    with patch.object(sys, 'argv', ['', '-x', str(wheel_path.parent)]):
         with pytest.raises(SystemExit) as e:
             wheel2deb.main()
             assert e.code == 0
 
-    assert (tmp_path / 'output/foobar-0.1.0-py3-none-any').exists()
+    unpack_path = tmp_path / 'output/foobar-0.1.0-py3-none-any'
+    assert unpack_path.exists()
 
     # build source package
     with patch.object(sys, 'argv', ['', 'build']):
@@ -63,5 +49,7 @@ def test_conversion(tmp_path):
     # output dir should contain a .deb
     package_list = list((tmp_path / 'output').glob('*.deb'))
     assert package_list
-
     assert package_list[0].name.startswith('python3-foobar_0.1.0-1')
+
+    # check that the entrypoint will be installed in /usr/bin
+    assert (unpack_path / 'debian/python3-foobar/usr/bin/entrypoint').exists()
