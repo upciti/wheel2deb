@@ -5,16 +5,16 @@ dist: xenial
 services:
   - docker
 
-before_cache:
+#before_cache:
   # https://github.com/travis-ci/travis-ci/issues/5358
   # Save tagged docker images
-  - mkdir -p $HOME/docker
-  - docker save $(docker images -q) -o $HOME/docker/images.tar
-  - ls -lh $HOME/docker
+#  - mkdir -p $HOME/docker
+#  - docker save $(docker images -q) -o $HOME/docker/images.tar
+#  - ls -lh $HOME/docker
 
-before_install:
+#before_install:
   # Load cached docker images
-  - docker load -i $HOME/docker/images.tar || true
+#  - docker load -i $HOME/docker/images.tar || true
 
 install:
   - pip install coveralls
@@ -30,6 +30,6 @@ after_success:
   - sed -i "s#/data#/home/travis/build/parkoview/wheel2deb#g" .coverage
   - coveralls
 
-cache:
-  directories:
-    - $HOME/docker
+#cache:
+#  directories:
+#    - $HOME/docker
