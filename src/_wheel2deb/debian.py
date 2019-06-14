@@ -54,8 +54,8 @@ class SourcePackage:
         self.name = suggest_name(ctx, wheel.name)
 
         # debian package version
-        self.version = '%s-%s~w2d%s' \
-                       % (wheel.version, ctx.revision, __version__)
+        self.version = '%s-%s~w2d%s' % (wheel.version, ctx.revision,
+                                        __version__.split('.')[0])
         if ctx.epoch:
             self.version = '%s:%s' % (ctx.epoch, self.version)
 
