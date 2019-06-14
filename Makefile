@@ -45,7 +45,7 @@ clean:
 	@find -depth -type d -name __pycache__ -exec rm -Rf {} \;
 	@find -type f -name '*.pyc' -delete
 
-.PHONY: default bdist images clean
+.PHONY: default bdist images clean publish push_images check
 
 define build_debian_image
 	cat docker/Dockerfile.in | sed s/_IMAGE_/debian:$(1)-slim/ | docker build -f - -t wheel2deb:$(1) dist;
