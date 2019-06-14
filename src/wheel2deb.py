@@ -62,7 +62,7 @@ def debianize(args):
     """
 
     # load config file (may contain a root context, and/or per wheel contexts)
-    settings = load('whee2deb.yml')
+    settings = load('wheel2deb.yml')
     # command line arguments take precedence over config file
     settings.update(vars(args))
 
