@@ -53,3 +53,13 @@ def test_conversion(tmp_path, wheel_path):
 
     # check that the entrypoint will be installed in /usr/bin
     assert (unpack_path / 'debian/python3-foobar/usr/bin/entrypoint').exists()
+
+
+def test_build(tmp_path):
+    os.chdir(str(tmp_path))
+    os.mkdir('output')
+
+    with patch.object(sys, 'argv', ['', 'build', '-f', '-j1']):
+        with pytest.raises(SystemExit) as e:
+            wheel2deb.main()
+            assert e.code == 0

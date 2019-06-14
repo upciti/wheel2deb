@@ -15,6 +15,7 @@ def shell(args, **kwargs):
     logger.debug('running %s', ' '.join(args))
     try:
         if 'cwd' in kwargs:
+            # convert cwd to str in case it's a Path
             kwargs['cwd'] = str(kwargs['cwd'])
         output = subprocess.check_output(
             args, stderr=subprocess.STDOUT, **kwargs)
@@ -77,16 +78,19 @@ def build_packages(paths, threads=4):
 
 def parse_debian_control(cwd):
     """
-    Extract some fields from debian/control
+    Extract fields from debian/control
     :param cwd: Path to debian source package
     :return: Dict object with fields as keys
     """
     from pathlib import Path
     import re
 
+    if isinstance(cwd, str):
+        cwd = Path(cwd)
+
     field_re = re.compile(r'^([\w-]+)\s*:\s*(.+)')
 
-    content = (Path(cwd) / 'debian' / 'control').read_text()
+    content = (cwd / 'debian' / 'control').read_text()
     control = {}
     for line in content.split('\n'):
         m = field_re.search(line)
