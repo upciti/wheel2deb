@@ -58,22 +58,30 @@ def build_package(cwd, arch=None):
     return returncode
 
 
-def parse_build_deps(cwd):
+def parse_debian_control(cwd):
     """
-    Extract build dependencies from debian/control
+    Extract some fields from debian/control
     :param cwd: Path to debian source package
-    :return: List of build dependencies
+    :return: Dict object with fields as keys
     """
     from pathlib import Path
     import re
 
-    control = (Path(cwd) / 'debian' / 'control').read_text()
-    for line in control.split('\n'):
-        if line.startswith('Build-Depends:'):
-            m = re.findall(r'([^=\s,()]+)\s?(?:\([^)]+\))?', line[14:])
-            return m
+    field_re = re.compile(r'^([\w-]+)\s*:\s*(.+)')
 
-    raise ValueError("could not find Build-Depends in debian/control")
+    content = (Path(cwd) / 'debian' / 'control').read_text()
+    control = {}
+    for line in content.split('\n'):
+        m = field_re.search(line)
+        if m:
+            g = m.groups()
+            control[g[0]] = g[1]
+
+    for k in ('Build-Depends', 'Depends'):
+        m = re.findall(r'([^=\s,()]+)\s?(?:\([^)]+\))?', control[k])
+        control[k] = m
+
+    return control
 
 
 def patch_pathlib():

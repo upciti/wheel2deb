@@ -75,6 +75,9 @@ class SourcePackage:
             logger.error('unknown platform tag, assuming arch=all')
             self.arch = 'all'
 
+        # debian package full filename
+        self.filename = '%s_%s_%s.deb' % (self.name, self.version, self.arch)
+
         self.interpreter = 'python' if self.pyvers.major == 2 else 'python3'
 
         # compute package run dependencies

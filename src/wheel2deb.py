@@ -135,9 +135,14 @@ def build(argv):
     p.add_argument('-p', '--path', default='output',
                    help='Path to search for source packages '
                         '(defaults to "./output")')
+    p.add_argument('-f', '--force', action='store_true',
+                   help='Build source package even if .deb already exists')
 
     args = p.parse_args(argv)
 
+    packages = list(Path(args.path).glob('*.deb'))
+
+    # list source packages in user supplied path
     src_packages = []
     for d in os.listdir(str(args.path)):
         path = Path(args.path) / d
@@ -145,14 +150,23 @@ def build(argv):
             src_packages.append(path)
 
     build_deps = set()
-    for path in src_packages:
-        build_deps.update(tools.parse_build_deps(path))
-    if build_deps:
-        logger.task('Installing %s build dependencies...', len(build_deps))
+    for path in src_packages.copy():
+        control = tools.parse_debian_control(path)
+        if not args.force and True in [p.name.startswith(
+                control['Package'] + '_') for p in packages]:
+            # source package already built, skipping build
+            src_packages.remove(path)
+        else:
+            # never built, add build deps to list
+            build_deps.update(control['Build-Depends'])
+
+    logger.task('Installing %s build dependencies...', len(build_deps))
+    if build_deps and src_packages:
         tools.install_packages(build_deps)
 
+    logger.task('Building %s source packages...', len(src_packages))
     for path in src_packages:
-        logger.task('Building debian source package %s', path)
+        logger.info(str(path))
         tools.build_package(path)
 
 
