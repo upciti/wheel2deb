@@ -137,6 +137,8 @@ def build(argv):
                         '(defaults to "./output")')
     p.add_argument('-f', '--force', action='store_true',
                    help='Build source package even if .deb already exists')
+    p.add_argument('-j', '--threads', default=4, type=int,
+                   help='Worker threads count')
 
     args = p.parse_args(argv)
 
@@ -165,9 +167,7 @@ def build(argv):
         tools.install_packages(build_deps)
 
     logger.task('Building %s source packages...', len(src_packages))
-    for path in src_packages:
-        logger.info(str(path))
-        tools.build_package(path)
+    tools.build_packages(src_packages, args.threads)
 
 
 def main():

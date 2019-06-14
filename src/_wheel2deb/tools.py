@@ -36,18 +36,10 @@ def install_packages(packages):
     return returncode
 
 
-def build_package(cwd, arch=None):
-    from pathlib import Path
-    import re
-
-    # read package arch
-    control = (Path(cwd) / 'debian' / 'control').read_text()
-    m = re.search(r'Architecture: (\w+)', control)
-    if m and not arch:
-        arch = m.group(1)
-
+def build_package(cwd):
     args = ['dpkg-buildpackage', '-us', '-uc']
-    if arch and arch != 'all':
+    arch = parse_debian_control(cwd)['Architecture']
+    if arch != 'all':
         args += ['--host-arch', arch]
 
     output, returncode = shell(args, cwd=cwd)
@@ -56,6 +48,31 @@ def build_package(cwd, arch=None):
         logger.error('failed to build package ☹')
 
     return returncode
+
+
+def build_packages(paths, threads=4):
+    from threading import Thread, Event
+    from time import sleep
+
+    paths = paths.copy()
+    workers = []
+    for i in range(threads):
+        event = Event()
+        event.set()
+        workers.append(dict(done=event, path=None))
+
+    def build(done, path):
+        logger.info('building %s', path)
+        build_package(path)
+        done.set()
+
+    while False in [w['done'].is_set() for w in workers] or paths:
+        for w in workers:
+            if w['done'].is_set() and paths:
+                w['done'].clear()
+                w['path'] = paths.pop()
+                Thread(target=build, kwargs=w).start()
+        sleep(1)
 
 
 def parse_debian_control(cwd):
