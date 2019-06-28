@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 import time
 from pathlib import Path
 from logging import INFO, DEBUG
@@ -169,6 +170,8 @@ def build(argv):
     logger.task('Building %s source packages...', len(src_packages))
     tools.build_packages(src_packages, args.threads)
 
+    sys.exit(logging.get_error_counter())
+
 
 def main():
     start_time = time.time()
@@ -194,7 +197,7 @@ def main():
                    round(time.time()-start_time, 3))
 
     # the return code is the number of errors
-    exit(logging.get_error_counter())
+    sys.exit(logging.get_error_counter())
 
 
 if __name__ == '__main__':
