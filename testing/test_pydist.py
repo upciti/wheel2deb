@@ -9,7 +9,7 @@ from _wheel2deb.pyvers import Version
 def test_parse_wheel(wheel_path):
     wheel = Wheel(wheel_path)
 
-    assert wheel.run_requires(Version(3))[0].name == 'somepackage'
+    assert wheel.run_requires(Version(3))[0].name == 'py'
 
     assert wheel.metadata.author == 'John Doe'
     assert wheel.metadata.home_page == 'http://perdu.com'

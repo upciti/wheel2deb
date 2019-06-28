@@ -22,6 +22,7 @@ bdist:
 	@python3 setup.py bdist_wheel
 
 images: bdist
+	@docker build -t debian:jessie-slim ./docker/patch-jessie
 	@cp docker/dh-autoreconf_* dist/
 	$(call map,build_debian_image,$(DEBIAN_DISTS))
 
@@ -55,5 +56,6 @@ define run_tests
 	docker run -ti -v $(CURDIR):/data --entrypoint "" $(1) /bin/bash -c " \
 		pip install dist/*.whl \
 		&& rm -rf testing/__pycache__ \
-		&& py.test --cov";
+		&& py.test --cov; exit $$?"; \
+		if [ ! $$? ]; then exit $$?; fi;
 endef

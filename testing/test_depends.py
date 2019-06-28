@@ -21,5 +21,5 @@ def test_search_python_deps(wheel_path):
     wheel = Wheel(wheel_path)
     deps, missing_deps = search_python_deps(ctx, wheel)
 
-    assert deps[0].startswith('python3-somepackage (>= 5.0')
-    assert missing_deps[0] == 'somepackage>=5.0'
+    assert deps[0].startswith('python3-py (>= 0.1')
+    assert not missing_deps

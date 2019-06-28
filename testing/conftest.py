@@ -25,7 +25,7 @@ def wheel_path():
               author='John Doe',
               url='http://perdu.com',
               packages=['foobar'],
-              install_requires=['somepackage>=5.0'],
+              install_requires=['py>=0.1'],
               entry_points={
                   'console_scripts': ['entrypoint=foobar.test:entrypoint']
               },
