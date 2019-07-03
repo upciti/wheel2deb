@@ -7,6 +7,7 @@ from tempfile import TemporaryDirectory
 
 import wheel2deb
 from wheel2deb import parse_args
+from _wheel2deb.context import load
 
 
 def digests(fname):
@@ -26,6 +27,23 @@ def test_parse_args():
     parser = parse_args(args)
     assert parser.map['attrs'] == 'attr'
     assert parser.python_version == '1'
+
+
+def test_load_config_file(tmp_path):
+    config_path = tmp_path / 'foo.yml'
+    with open(str(config_path), 'w') as f:
+        f.write('all:\n'
+                '  map:\n'
+                '    attrs: attr\n'
+                '  depends:\n'
+                '    - python-foobar\n')
+
+    args = ['--config', str(config_path)]
+    parser = parse_args(args)
+    settings = load(parser.config)
+
+    assert settings.get_ctx().map['attrs'] == 'attr'
+    assert settings.get_ctx().depends[0] == 'python-foobar'
 
 
 @patch('sys.argv', ['wheel2deb', '-h'])

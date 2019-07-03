@@ -34,8 +34,12 @@ class Settings:
                 args.pop(k)
         self.root_ctx = attr.evolve(self.root_ctx, **args)
 
-    def get_ctx(self, key):
+    def get_ctx(self, key=None):
         changes = {}
+
+        if key is None:
+            return self.root_ctx
+
         for k in self.config.keys():
             if key.startswith(k):
                 changes = self.config[k]

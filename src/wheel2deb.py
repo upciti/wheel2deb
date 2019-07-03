@@ -28,8 +28,11 @@ def parse_args(argv):
                    help='List of wheel names not to convert')
     p.add_argument('-o', '--output', default='output',
                    help='Output directory (defaults to ./output)')
+    p.add_argument('-c', '--config', default='wheel2deb.yml',
+                   help='Path to configuration file '
+                        '(defaults to ./wheel2deb.yml)')
     p.add_argument('--python-version',
-                   help='cpython version on the target debian distribution '
+                   help='CPython version on the target debian distribution '
                         '(defaults to the platform version)')
     p.add_argument('-x', '--search-paths', default='.', nargs='+',
                    help='')
@@ -63,7 +66,7 @@ def debianize(args):
     """
 
     # load config file (may contain a root context, and/or per wheel contexts)
-    settings = load('wheel2deb.yml')
+    settings = load(args.config)
     # command line arguments take precedence over config file
     settings.update(vars(args))
 
