@@ -173,8 +173,6 @@ def build(argv):
     logger.task('Building %s source packages...', len(src_packages))
     tools.build_packages(src_packages, args.threads)
 
-    sys.exit(logging.get_error_counter())
-
 
 def main():
     start_time = time.time()

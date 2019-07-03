@@ -20,6 +20,8 @@ class Context:
     provides = attr.ib(factory=list)
     revision = attr.ib(default='1')
     epoch = attr.ib(default=0, converter=int)
+    version_template = attr.ib(
+        default='{epoch}:{upstream_version}-{revision}~w2d{w2d_version[0]}')
 
 
 @attr.s

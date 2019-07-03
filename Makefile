@@ -1,5 +1,7 @@
 MAKE := $(MAKE) --no-print-directory
-SHELL = bash
+SHELL = sh
+
+IMAGE_NAME ?= parkoview/wheel2deb
 
 DEBIAN_DISTS := jessie stretch buster
 
@@ -19,9 +21,10 @@ default:
 	@echo
 
 bdist:
+	@rm -f dist/*.whl
 	@python3 setup.py bdist_wheel
 
-images: bdist
+images:
 	@docker build -t debian:jessie-slim ./docker/patch-jessie
 	@cp docker/dh-autoreconf_* dist/
 	$(call map,build_debian_image,$(DEBIAN_DISTS))
@@ -29,14 +32,9 @@ images: bdist
 check:
 	@flake8 src
 
-tests: bdist
-	$(eval images := $(foreach a,$(DEBIAN_DISTS),wheel2deb:$(a)))
+tests:
+	$(eval images := $(foreach a,$(DEBIAN_DISTS),$(IMAGE_NAME):$(a)))
 	$(call map,run_tests,$(images))
-
-push_images:
-	$(foreach a,$(DEBIAN_DISTS),\
-		docker tag wheel2deb:$(a) parkoview/wheel2deb:$(a);)
-	@docker push parkoview/wheel2deb
 
 publish: clean bdist
 	twine upload dist/*.whl
@@ -46,14 +44,14 @@ clean:
 	@find -depth -type d -name __pycache__ -exec rm -Rf {} \;
 	@find -type f -name '*.pyc' -delete
 
-.PHONY: default bdist images clean publish push_images check
+.PHONY: default bdist images clean publish check
 
 define build_debian_image
-	cat docker/Dockerfile.in | sed s/_IMAGE_/debian:$(1)-slim/ | docker build -f - -t wheel2deb:$(1) dist;
+	cat docker/Dockerfile.in | sed s/_IMAGE_/debian:$(1)-slim/ | docker build -f - -t $(IMAGE_NAME):$(1) dist;
 endef
 
 define run_tests
-	docker run -ti -v $(CURDIR):/data --entrypoint "" $(1) /bin/bash -c " \
+	docker run -v $(CURDIR):/data --entrypoint "" $(1) /bin/sh -c " \
 		pip install dist/*.whl \
 		&& rm -rf testing/__pycache__ \
 		&& py.test --cov; exit $$?"; \

@@ -1,0 +1,78 @@
+stages:
+  - build
+  - test
+  - deploy
+
+services:
+  - name: docker:dind
+
+Build Wheel:
+  image: $CI_REGISTRY/tools/bdist-builder
+  stage: build
+  script:
+    - python3 setup.py bdist_wheel
+  artifacts:
+    paths:
+    - dist/*
+    expire_in: 3 week
+
+Unit Tests:
+  tags:
+    - docker
+  stage: test
+  script:
+    - apk add --update make
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - IMAGE_NAME=$CI_REGISTRY_IMAGE make tests
+
+Push to Registry:
+  tags:
+    - docker
+  stage: deploy
+  script:
+    - apk add --update make
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - IMAGE_NAME=$CI_REGISTRY_IMAGE make images
+    - docker push $CI_REGISTRY_IMAGE
+  only:
+    - /^v.*$/
+  except:
+    - branches
+
+Publish on Gitlab:
+  stage: deploy
+  image: $CI_REGISTRY/tools/gitlab-release
+  script:
+    - gitlab-release -k dist/*.whl
+  only:
+    - /^v.*$/
+  except:
+    - branches
+
+Push to Docker Hub:
+  tags:
+    - docker
+  stage: deploy
+  when: manual
+  only:
+    - /^v.*$/
+  except:
+    - branches
+  script:
+    - apk add --update make
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - IMAGE_NAME=parkoview/wheel2deb make images
+    - docker push parkoview/wheel2deb
+    - twine
+
+Publish on PyPi:
+  stage: deploy
+  image: python:3.6-alpine
+  when: manual
+  only:
+    - /^v.*$/
+  except:
+    - branches
+  script:
+    - pip install twine
+    - twine upload dist/*.whl
