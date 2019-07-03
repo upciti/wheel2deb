@@ -1,7 +1,8 @@
-import os
+import os.path
 import attr
 import re
 import glob
+from shutil import rmtree
 from tempfile import mkdtemp
 from functools import lru_cache
 from pathlib import Path
@@ -12,7 +13,6 @@ from pkginfo import Distribution
 
 from . import logger as logging
 from .pyvers import VersionRange, Version
-from .entrypoints import parse_entry_points
 
 logger = logging.getLogger(__name__)
 
@@ -172,10 +172,12 @@ class Wheel:
         Unpack wheel archive
         """
 
-        if not self.extract_path.exists():
-            with WheelFile(str(self.filepath)) as wf:
-                logger.debug("unpacking wheel to: %s..." % self.extract_path)
-                wf.extractall(str(self.extract_path))
+        if self.extract_path.exists():
+            rmtree(str(self.extract_path))
+
+        with WheelFile(str(self.filepath)) as wf:
+            logger.debug("unpacking wheel to: %s..." % self.extract_path)
+            wf.extractall(str(self.extract_path))
 
     def __repr__(self):
         return self.filename
@@ -189,10 +191,9 @@ class Wheel:
         # parse .dist-info/RECORD
         self.record = Record.from_str((info_dir / 'RECORD').read_text())
 
-        # parse .dist-info/entry_points.txt
         try:
-            self.entrypoints = parse_entry_points(
-                (info_dir / 'entry_points.txt').read_text())
+            # parse .dist-info/entry_points.txt
+            self.entrypoints = (info_dir / 'entry_points.txt').read_text()
         except FileNotFoundError:
             self.entrypoints = None
 

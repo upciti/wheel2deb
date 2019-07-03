@@ -33,6 +33,7 @@ def test_load_config_file(tmp_path):
     config_path = tmp_path / 'foo.yml'
     with open(str(config_path), 'w') as f:
         f.write('all:\n'
+                '  version_template: "1.0.0"\n'
                 '  map:\n'
                 '    attrs: attr\n'
                 '  depends:\n'
