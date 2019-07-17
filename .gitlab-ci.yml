@@ -60,7 +60,7 @@ Push to Docker Hub:
     - branches
   script:
     - apk add --update make
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
     - IMAGE_NAME=parkoview/wheel2deb make images
     - docker push parkoview/wheel2deb
     - twine
