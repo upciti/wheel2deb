@@ -16,6 +16,32 @@ DEB_VERS_OPS = {
 }
 
 
+def normalize_package_version(python_package_version, prerelease_workaround=True):
+    """
+    Normalize Python package version to be used as Debian package version.
+    :param python_package_version: The version of a Python package (a string).
+    :param prerelease_workaround: :data:`True` to enable the pre-release
+                                  handling documented below, :data:`False` to
+                                  restore the old behavior.
+    Reformats Python package versions to comply with the Debian policy manual.
+    All characters except alphanumerics, dot (``.``) and plus (``+``) are
+    replaced with dashes (``-``).
+    The PEP 440 pre-release identifiers 'a', 'b', 'c' and 'rc' are prefixed by
+    a tilde (``~``) to replicate the intended ordering in Debian versions, also
+    the identifier 'c' is translated into 'rc'. Refer to `issue #8
+    <https://github.com/paylogic/py2deb/issues/8>`_ for details.
+    """
+    # Credits to https://github.com/paylogic/py2deb/blob/master/py2deb/utils.py
+    # Lowercase and remove invalid characters from the version string.
+    version = re.sub('[^a-z0-9.+]+', '-', python_package_version.lower()).strip('-')
+    if prerelease_workaround:
+        # Translate the PEP 440 pre-release identifier 'c' to 'rc'.
+        version = re.sub(r'(\d)c(\d)', r'\1rc\2', version)
+        # Replicate the intended ordering of PEP 440 pre-release versions (a, b, rc).
+        version = re.sub(r'(\d)(a|b|rc)(\d)', r'\1~\2\3', version)
+    return version
+
+
 def suggest_name(ctx, wheel_name):
     """
     Guess Debian package name from a wheel name and a python implementation.
@@ -60,10 +86,13 @@ def search_python_deps(ctx, wheel, extras=None):
     requirements = wheel.run_requires(ctx.python_version)
 
     # filter out ignored requirements
-    for i, r in enumerate(requirements):
+    def is_required(r):
         if r.name in ctx.ignore_requirements:
             logger.warning('ignoring requirement %s', str(r))
-            requirements.pop(i)
+            return False
+        else:
+            return True
+    requirements = list(filter(is_required, requirements))
 
     # translate requirements to debian package names
     # and search them in apt cache
@@ -107,9 +136,7 @@ def search_python_deps(ctx, wheel, extras=None):
             for specifier in req.specifier:
                 # != can't be translated to a package relationship in debian...
                 if specifier.operator != '!=':
-                    v = specifier.version
-                    if specifier.operator == '>=':
-                        v += '~'
+                    v = normalize_package_version(specifier.version)
                     if specifier.operator == '<=':
                         v += '-+'
                     debian_deps.append(

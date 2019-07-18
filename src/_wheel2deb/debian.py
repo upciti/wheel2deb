@@ -5,7 +5,7 @@ from . import TEMPLATE_PATH
 from . import logger as logging
 from .tools import shell
 from .version import __version__
-from .depends import suggest_name, search_python_deps
+from .depends import suggest_name, search_python_deps, normalize_package_version
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +55,7 @@ class SourcePackage:
         # debian package version
         self.version = ctx.version_template.format(
             epoch=ctx.epoch,
-            upstream_version=self.wheel.version,
+            upstream_version=normalize_package_version(self.wheel.version),
             revision=ctx.revision,
             w2d_version=__version__)
 
