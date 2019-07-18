@@ -38,6 +38,7 @@ def install_packages(packages):
 
 
 def build_package(cwd):
+    """ Run dpkg-buildpackage in specified path. """
     args = ['dpkg-buildpackage', '-us', '-uc']
     arch = parse_debian_control(cwd)['Architecture']
     if arch != 'all':
@@ -52,6 +53,11 @@ def build_package(cwd):
 
 
 def build_packages(paths, threads=4):
+    """
+    Run several instances of dpkg-buildpackage in parallel.
+    :param paths: List of paths where dpkg-buildpackage will be called
+    :param threads: Number of threads to run in parallel
+    """
     from threading import Thread, Event
     from time import sleep
 
@@ -106,6 +112,7 @@ def parse_debian_control(cwd):
 
 
 def patch_pathlib():
+    """ Monkey patch pathlib.Path if Path.read_text does not exist. """
     def path_read_text(self):
         with self.open('r') as f:
             return f.read()
