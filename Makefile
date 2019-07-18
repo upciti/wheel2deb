@@ -54,6 +54,6 @@ define run_tests
 	docker run -v $(CURDIR):/data --entrypoint "" $(1) /bin/sh -c " \
 		pip install dist/*.whl \
 		&& rm -rf testing/__pycache__ \
-		&& py.test --cov; exit $$?"; \
-		if [ ! $$? ]; then exit $$?; fi;
+		&& py.test --cov"; \
+	if (test $$? -ne 0); then exit 1; fi;
 endef
