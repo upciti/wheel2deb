@@ -37,7 +37,7 @@ class Settings:
                 args.pop(k)
         self.root_ctx = attr.evolve(self.root_ctx, **args)
 
-    def get_ctx(self, key=None):
+    def get_ctx(self, key):
         ctx = self.root_ctx
         for k in self.config.keys():
             if re.match(k, key):

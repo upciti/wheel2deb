@@ -32,7 +32,7 @@ def test_parse_args():
 def test_load_config_file(tmp_path):
     config_path = tmp_path / 'foo.yml'
     with open(str(config_path), 'w') as f:
-        f.write('all:\n'
+        f.write('.+:\n'
                 '  version_template: "1.0.0"\n'
                 '  map:\n'
                 '    attrs: attr\n'
@@ -43,8 +43,8 @@ def test_load_config_file(tmp_path):
     parser = parse_args(args)
     settings = load(parser.config)
 
-    assert settings.get_ctx().map['attrs'] == 'attr'
-    assert settings.get_ctx().depends[0] == 'python-foobar'
+    assert settings.get_ctx('foo').map['attrs'] == 'attr'
+    assert settings.get_ctx('foo').depends[0] == 'python-foobar'
 
 
 @patch('sys.argv', ['wheel2deb', '-h'])
