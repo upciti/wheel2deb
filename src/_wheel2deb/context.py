@@ -1,5 +1,6 @@
 import attr
 import platform
+import re
 
 from .pyvers import Version
 
@@ -26,8 +27,8 @@ class Context:
 
 @attr.s
 class Settings:
-    root_ctx = attr.ib(type=Context)
     config = attr.ib(type=dict)
+    root_ctx = attr.ib(factory=Context)
 
     def update(self, changes):
         args = changes.copy()
@@ -37,26 +38,19 @@ class Settings:
         self.root_ctx = attr.evolve(self.root_ctx, **args)
 
     def get_ctx(self, key=None):
-        changes = {}
-
-        if key is None:
-            return self.root_ctx
-
+        ctx = self.root_ctx
         for k in self.config.keys():
-            if key.startswith(k):
-                changes = self.config[k]
-        return attr.evolve(self.root_ctx, **changes)
+            if re.match(k, key):
+                ctx = attr.evolve(ctx, **self.config[k])
+        return ctx
 
 
 def load(file):
-    root_ctx = Context()
     config = {}
     try:
         with open(file, 'r') as f:
             import yaml
             config = yaml.safe_load(f)
-            if 'all' in config:
-                root_ctx = attr.evolve(root_ctx, **config['all'])
     except FileNotFoundError:
         pass
-    return Settings(root_ctx, config)
+    return Settings(config)
