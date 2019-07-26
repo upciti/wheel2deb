@@ -2,7 +2,7 @@ import os
 import re
 from pathlib import Path
 from . import TEMPLATE_PATH
-from . import logger as logging
+from .logger import logging
 from .tools import shell
 from .version import __version__
 from .depends import suggest_name, search_python_deps, normalize_package_version

@@ -11,7 +11,7 @@ from packaging.requirements import Requirement
 from wheel.wheelfile import WheelFile
 from pkginfo import Distribution
 
-from . import logger as logging
+from .logger import logging
 from .pyvers import VersionRange, Version
 
 logger = logging.getLogger(__name__)
@@ -171,7 +171,7 @@ class Wheel:
         """
         Unpack wheel archive
         """
-
+        pass
         if self.extract_path.exists():
             rmtree(str(self.extract_path))
 

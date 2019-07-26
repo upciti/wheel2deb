@@ -1,7 +1,7 @@
 import attr
 import apt
 import re
-from . import logger as logging
+from .logger import logging
 
 # https://www.debian.org/doc/debian-policy/ch-controlfields.html#version
 PACKAGE_VER_RE = re0 = re.compile(
