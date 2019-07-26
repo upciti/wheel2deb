@@ -1,7 +1,7 @@
 import re
 from packaging.version import parse
 
-from . import logger as logging
+from .logger import logging
 from .apt import search_packages
 
 logger = logging.getLogger(__name__)
@@ -114,12 +114,12 @@ def search_python_deps(ctx, wheel, extras=None):
     missing_deps = []
     for pdep, req in zip(debnames, requirements):
         def check(x):
-            if req.specifier.contains(x.version):
+            if req.specifier.contains(x.version, prereleases=True):
                 logger.info('%s satisfies requirement %s', x, req)
             else:
                 logger.warning('%s does not satisfy requirement %s', x, req)
             return ctx.ignore_upstream_versions or \
-                req.specifier.contains(x.version)
+                req.specifier.contains(x.version, prereleases=True)
 
         version = None
         for candidate in candidates[req.name]:
