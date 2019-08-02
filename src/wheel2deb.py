@@ -155,20 +155,12 @@ def build(argv):
         if path.is_dir() and (path / 'debian/control').is_file():
             src_packages.append(path)
 
-    build_deps = set()
     for path in src_packages.copy():
         control = tools.parse_debian_control(path)
         if not args.force and True in [p.name.startswith(
                 control['Package'] + '_') for p in packages]:
             # source package already built, skipping build
             src_packages.remove(path)
-        else:
-            # never built, add build deps to list
-            build_deps.update(control['Build-Depends'])
-
-    logger.task('Installing %s build dependencies...', len(build_deps))
-    if build_deps and src_packages:
-        tools.install_packages(build_deps)
 
     logger.task('Building %s source packages...', len(src_packages))
     tools.build_packages(src_packages, args.threads)

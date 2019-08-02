@@ -63,7 +63,6 @@ Push to Docker Hub:
     - docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
     - IMAGE_NAME=parkoview/wheel2deb make images
     - docker push parkoview/wheel2deb
-    - twine
 
 Publish on PyPi:
   stage: deploy
