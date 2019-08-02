@@ -1,6 +1,8 @@
 import os
 import re
 from pathlib import Path
+from dirsync import sync
+
 from . import TEMPLATE_PATH
 from .logger import logging
 from .tools import shell
@@ -8,6 +10,8 @@ from .version import __version__
 from .depends import suggest_name, search_python_deps, normalize_package_version
 
 logger = logging.getLogger(__name__)
+dirsync_logger = logging.getLogger("dirsync")
+dirsync_logger.setLevel(logging.ERROR)
 
 COPYRIGHT_RE = re.compile(
     r'(?:copyrights?|\s*©|\s*\(c\))[\s:|,]*'
@@ -35,19 +39,10 @@ class SourcePackage:
     Create a debian source package that can be built
     with dpkg-buildpackage from a python wheel
     """
-    def __init__(self, ctx, wheel, extras=None):
+    def __init__(self, ctx, wheel, output, extras=None):
         self.wheel = wheel
         self.ctx = ctx
         self.pyvers = ctx.python_version
-
-        # root directory of the debian source package
-        self.root = wheel.extract_path.parent
-        # relative path to wheel.extract_path from self.root
-        # contains the files extracted from the wheel
-        self.src = Path(wheel.extract_path.name)
-        # debian directory path
-        # holds the package config files
-        self.debian = self.root / 'debian'
 
         # debian package name
         self.name = suggest_name(ctx, wheel.name)
@@ -75,8 +70,23 @@ class SourcePackage:
             logger.error('unknown platform tag, assuming arch=all')
             self.arch = 'all'
 
+        version_without_epoch = self.version.split(':')[-1]
         # debian package full filename
-        self.filename = '%s_%s_%s.deb' % (self.name, self.version, self.arch)
+        self.filename = '%s_%s_%s.deb' % \
+                        (self.name, version_without_epoch, self.arch)
+
+        # root directory of the debian source package
+        self.root = Path(output) / self.filename[:-4]
+        # relative path to wheel.extract_path from self.root
+        # contains the files extracted from the wheel
+        self.src = Path('src')
+        # debian directory path
+        # holds the package config files
+        self.debian = self.root / 'debian'
+
+        # sync src directory with files from the wheel
+        sync(str(wheel.extract_path), str(self.root / self.src), 'sync',
+             create=True, logger=dirsync_logger)
 
         self.interpreter = 'python' if self.pyvers.major == 2 else 'python3'
 

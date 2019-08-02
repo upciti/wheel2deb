@@ -8,7 +8,8 @@ INSTALL_REQUIRES = [
     'colorama',
     'attrs>=17',
     'packaging',
-    'pyyaml'
+    'pyyaml',
+    'dirsync'
 ]
 
 version_template = """\

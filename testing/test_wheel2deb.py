@@ -69,7 +69,7 @@ def test_conversion(tmp_path, wheel_path):
             wheel2deb.main()
             assert mock_exit.call_args[0][0] == 0
 
-    unpack_path = tmp_path / 'output/foobar-0.1.0-py3-none-any'
+    unpack_path = tmp_path / 'output/python3-foobar_0.1.0-1~w2d0_all'
     assert unpack_path.exists()
 
     # build source package

@@ -171,9 +171,8 @@ class Wheel:
         """
         Unpack wheel archive
         """
-        pass
         if self.extract_path.exists():
-            rmtree(str(self.extract_path))
+            return
 
         with WheelFile(str(self.filepath)) as wf:
             logger.debug("unpacking wheel to: %s..." % self.extract_path)

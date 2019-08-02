@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 
 tools.patch_pathlib()
 
+EXTRACT_PATH = Path('/tmp/wheel2deb')
+
 
 def parse_args(argv):
     p = argparse.ArgumentParser(
@@ -98,8 +100,7 @@ def debianize(args):
 
     wheels = []
     for file in files:
-        path = args.output / file.name[:-4] / 'src'
-        wheel = Wheel(file, path)
+        wheel = Wheel(file, EXTRACT_PATH / file.name[:-4])
         ctx = settings.get_ctx(wheel.filename)
 
         if not wheel.cpython_supported:
@@ -121,7 +122,7 @@ def debianize(args):
         if wheel.filename in args.include:
             logger.task('Debianizing wheel %s', wheel)
             ctx = settings.get_ctx(wheel.filename)
-            package = SourcePackage(ctx, wheel, extras=wheels)
+            package = SourcePackage(ctx, wheel, args.output, extras=wheels)
             package.create()
             packages.append(package)
 
@@ -156,9 +157,7 @@ def build(argv):
             src_packages.append(path)
 
     for path in src_packages.copy():
-        control = tools.parse_debian_control(path)
-        if not args.force and True in [p.name.startswith(
-                control['Package'] + '_') for p in packages]:
+        if not args.force and True in [p.name[:-4] == path.name for p in packages]:
             # source package already built, skipping build
             src_packages.remove(path)
 

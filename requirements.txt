@@ -1,0 +1,9 @@
+setuptools
+wheel
+pkginfo
+jinja2
+colorama
+attrs>=17
+packaging
+pyyaml
+dirsync
