@@ -88,7 +88,13 @@ def test_conversion(tmp_path, wheel_path):
     package_hash = digests(package_list[0])
 
     # check that the entrypoint will be installed in /usr/bin
-    assert (unpack_path / 'debian/python3-foobar/usr/bin/entrypoint').exists()
+    entrypoint = (unpack_path / 'debian/python3-foobar/usr/bin/entrypoint')
+    assert entrypoint.exists()
+
+    # check shebang
+    with open(str(entrypoint), 'r') as f:
+        shebang = f.readline()
+        assert shebang.startswith('#!/usr/bin')
 
     # idempotence: delete package, rerun build command
     # and check  that both packages have the same hash

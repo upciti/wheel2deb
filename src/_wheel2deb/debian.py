@@ -254,7 +254,7 @@ class SourcePackage:
             .dump(str(file))
 
     def fix_shebangs(self):
-        files = [self.wheel.extract_path / x
+        files = [self.root / self.src / x
                  for x in self.wheel.record.scripts]
         for file in files:
             content = file.read_text()
