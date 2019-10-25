@@ -47,7 +47,7 @@ clean:
 .PHONY: default bdist images clean publish check
 
 define build_debian_image
-	cat docker/Dockerfile.in | sed s/_IMAGE_/debian:$(1)-slim/ | docker build -f - -t $(IMAGE_NAME):$(1) --cache-from $(IMAGE_NAME):$(1) dist;
+	cat docker/Dockerfile.in | sed s/_IMAGE_/debian:$(1)-slim/ | docker build -f - -t $(IMAGE_NAME):$(1) --cache-from $(IMAGE_NAME):$(1);
 endef
 
 define run_tests

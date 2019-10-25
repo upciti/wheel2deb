@@ -4,7 +4,7 @@ LABEL maintainer="fyhertz@gmail.com"
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
-COPY dh-autoreconf* /
+COPY docker/dh-autoreconf* /
 RUN dpkg -i dh-autoreconf* && rm dh-autoreconf*
 
 RUN dpkg --add-architecture armhf \
@@ -31,7 +31,7 @@ RUN curl -k https://bootstrap.pypa.io/get-pip.py > /tmp/get-pip.py \
     && python3 /tmp/get-pip.py \
     && rm /tmp/get-pip.py
 
-COPY ./wheel2deb*.whl /
+COPY ./dist/wheel2deb*.whl /
 
 RUN pip3 install *.whl \
  && pip3 install pytest pytest-cov \
