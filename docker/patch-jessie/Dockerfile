@@ -11,8 +11,8 @@ ENV LANG=C.UTF-8
 
 COPY *.deb /
 
-RUN apt-get -yq update || true \
-    && dpkg -i /*.deb || true \
+RUN (apt-get -yq update || true) \
+    && (dpkg -i /*.deb || true) \
     && apt-get -yq --no-install-recommends install -f \
-    && rm /*.deb \
+    && rm -f /*.deb \
     && apt-get clean

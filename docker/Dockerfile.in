@@ -31,11 +31,11 @@ RUN curl -k https://bootstrap.pypa.io/get-pip.py > /tmp/get-pip.py \
     && python3 /tmp/get-pip.py \
     && rm /tmp/get-pip.py
 
-COPY ./dist/wheel2deb*.whl /
+COPY wheel2deb*.whl /
 
 RUN pip3 install *.whl \
  && pip3 install pytest pytest-cov \
- && rm /wheel2deb*
+ && rm *.whl
 
 VOLUME /data
 WORKDIR /data

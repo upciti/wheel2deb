@@ -3,7 +3,7 @@ SHELL = sh
 
 IMAGE_NAME ?= parkoview/wheel2deb
 
-DEBIAN_DISTS := jessie stretch buster
+DEBIAN_DISTS := stretch buster
 
 map = $(foreach a,$(2),$(call $(1),$(a)))
 
@@ -25,8 +25,9 @@ bdist:
 	@python3 setup.py bdist_wheel
 
 images:
-	@docker build -t debian:jessie-slim ./docker/patch-jessie
+	@docker build -t debian:jessie-patched --cache-from debian:jessie-patched ./docker/patch-jessie
 	@cp docker/dh-autoreconf_* dist/
+	$(call build_jessie_image)
 	$(call map,build_debian_image,$(DEBIAN_DISTS))
 
 check:
@@ -34,6 +35,7 @@ check:
 
 tests:
 	$(eval images := $(foreach a,$(DEBIAN_DISTS),$(IMAGE_NAME):$(a)))
+	$(call run_tests,$(IMAGE_NAME):jessie)
 	$(call map,run_tests,$(images))
 
 publish: clean bdist
@@ -45,6 +47,10 @@ clean:
 	@find -type f -name '*.pyc' -delete
 
 .PHONY: default bdist images clean publish check
+
+define build_jessie_image
+	cat docker/Dockerfile.in | sed s/_IMAGE_/debian:jessie-patched/ | docker build -t $(IMAGE_NAME):jessie --cache-from $(IMAGE_NAME):jessie -f - dist;
+endef
 
 define build_debian_image
 	cat docker/Dockerfile.in | sed s/_IMAGE_/debian:$(1)-slim/ | docker build -t $(IMAGE_NAME):$(1) --cache-from $(IMAGE_NAME):$(1) -f - dist;
