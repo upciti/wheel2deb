@@ -4,7 +4,7 @@ LABEL maintainer="fyhertz@gmail.com"
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
-COPY docker/dh-autoreconf* /
+COPY dh-autoreconf_14_all.deb /
 RUN dpkg -i dh-autoreconf* && rm dh-autoreconf*
 
 RUN dpkg --add-architecture armhf \
