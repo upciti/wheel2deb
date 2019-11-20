@@ -33,7 +33,7 @@ class Package:
         return '{}=={}'.format(self.name, self.version)
 
 
-def search_packages(names):
+def search_packages(names, arch):
     if not names:
         return
 
@@ -47,5 +47,7 @@ def search_packages(names):
     for name in names:
         if name in _cache:
             yield Package.factory(name, _cache[name].versions[0].version)
+        elif arch and name+':'+arch in _cache:
+            yield Package.factory(name, _cache[name+':'+arch].versions[0].version)
         else:
             yield None

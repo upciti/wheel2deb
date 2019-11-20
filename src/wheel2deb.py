@@ -7,7 +7,7 @@ from logging import INFO, DEBUG
 from functools import partial
 from _wheel2deb import tools
 from _wheel2deb import logger as logging
-from _wheel2deb.context import load
+from _wheel2deb.context import load, Settings
 from _wheel2deb.pydist import Wheel
 from _wheel2deb.debian import SourcePackage
 
@@ -30,12 +30,16 @@ def parse_args(argv):
                    help='List of wheel names not to convert')
     p.add_argument('-o', '--output', default='output',
                    help='Output directory (defaults to ./output)')
-    p.add_argument('-c', '--config', default='wheel2deb.yml',
+    p.add_argument('-c', '--config',
                    help='Path to configuration file '
                         '(defaults to ./wheel2deb.yml)')
     p.add_argument('--python-version',
                    help='CPython version on the target debian distribution '
                         '(defaults to the platform version)')
+    p.add_argument('--arch',
+                   help='Architecture of the target debian distribution'
+                        '(only needed if you have repos with a different '
+                        'arch than your host in your sources.list)')
     p.add_argument('-x', '--search-paths', default='.', nargs='+',
                    help='')
     p.add_argument('--map', nargs='+',
@@ -67,10 +71,16 @@ def debianize(args):
     Convert wheels found in args.search_paths in debian source packages
     """
 
-    # load config file (may contain a root context, and/or per wheel contexts)
-    settings = load(args.config)
-    # command line arguments take precedence over config file
-    settings.update(vars(args))
+    # load config file
+    if args.config:
+        settings = load(args.config)
+    elif Path('wheel2deb.yml').is_file():
+        settings = load('wheel2deb.yml')
+    else:
+        settings = Settings()
+
+    # config file takes precedence over command line arguments
+    settings.default_ctx.update(vars(args))
 
     if not args.output.exists():
         args.output.mkdir()

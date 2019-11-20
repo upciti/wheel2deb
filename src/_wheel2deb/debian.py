@@ -294,7 +294,7 @@ class SourcePackage:
 
             # search packages providing those libs
             for lib in missing_libs:
-                output = shell(['apt-file', 'search', lib])[0]
+                output = shell(['apt-file', 'search', lib, '-a', self.arch])[0]
                 packages = set(APT_FILE_RE.findall(output))
 
                 # remove dbg packages

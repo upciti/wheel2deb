@@ -97,7 +97,7 @@ def search_python_deps(ctx, wheel, extras=None):
     # translate requirements to debian package names
     # and search them in apt cache
     debnames = list(suggest_names(ctx, [r.name for r in requirements]))
-    results = search_packages(debnames)
+    results = search_packages(debnames, ctx.arch)
 
     candidates = {r.name: [] for r in requirements}
     for res, req in zip(results, requirements):
