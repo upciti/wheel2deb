@@ -98,7 +98,9 @@ def debianize(args):
     # remove excluded wheels
     if args.exclude:
         args.include = \
-            list(filter(lambda x: x not in args.exclude, args.include))
+            list(filter(lambda x: not list(
+                filter(lambda y: y in x, args.exclude)
+            ), args.include))
 
     # fail if some input wheel was not found in search paths
     missing = list(filter(lambda x: x not in filenames, args.include))
