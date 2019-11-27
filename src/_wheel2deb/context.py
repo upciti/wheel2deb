@@ -17,6 +17,7 @@ class Context:
     ignore_entry_points = attr.ib(default=False)
     ignore_upstream_versions = attr.ib(default=False)
     ignore_requirements = attr.ib(factory=list)
+    extra = attr.ib(default='')
     map = attr.ib(factory=dict)
     depends = attr.ib(factory=list)
     provides = attr.ib(factory=list)

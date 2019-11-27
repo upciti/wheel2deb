@@ -111,9 +111,8 @@ class Wheel:
             req.name = normalize_name(req.name)
         return reqs
 
-    @lru_cache(maxsize=None)
-    def run_requires(self, pyvers):
-        env = {'python_version': str(pyvers)}
+    def run_requires(self, pyvers, wheel_extra):
+        env = {'python_version': str(pyvers), 'extra': str(wheel_extra)}
         return self.requires(env)
 
     @lru_cache(maxsize=None)
