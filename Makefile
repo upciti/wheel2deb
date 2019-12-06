@@ -35,7 +35,6 @@ check:
 
 tests:
 	$(eval images := $(foreach a,$(DEBIAN_DISTS),$(IMAGE_NAME):$(a)))
-	$(call run_tests,$(IMAGE_NAME):jessie)
 	$(call map,run_tests,$(images))
 
 publish: clean bdist
