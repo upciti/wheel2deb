@@ -25,9 +25,7 @@ bdist:
 	@python3 setup.py bdist_wheel
 
 images:
-	@docker build -t debian:jessie-patched --cache-from debian:jessie-patched ./docker/patch-jessie
 	@cp docker/dh-autoreconf_* dist/
-	$(call build_jessie_image)
 	$(call map,build_debian_image,$(DEBIAN_DISTS))
 
 check:
