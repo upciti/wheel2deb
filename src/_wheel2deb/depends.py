@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 APT_FILE_RE = re.compile(r'(.*lib.+):\s(?:/usr/lib/|/lib/)')
 
 DEB_VERS_OPS = {
-    '==': '=',
+    '==': '>=',
     '<':  '<<',
     '>':  '>>',
     '~=': '>=',
@@ -140,6 +140,13 @@ def search_python_deps(ctx, wheel, extras=None):
                 # != can't be translated to a package relationship in debian...
                 if specifier.operator != '!=':
                     v = normalize_package_version(specifier.version)
+                    # replace == specifier a << x.y+1.z
+                    # the == specifier is itself translated to a >= x.y.z
+                    if specifier.operator == '==':
+                        parsed = parse(v)
+                        debian_deps.append(
+                            '%s (<< %s.%s)'
+                            % (pdep, parsed.release[0], parsed.release[1]+1))
                     if specifier.operator == '<=':
                         v += '-+'
                     debian_deps.append(
