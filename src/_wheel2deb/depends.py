@@ -135,7 +135,10 @@ def search_python_deps(ctx, wheel, extras=None):
             logger.error('could not find a candidate for requirement %s', req)
             missing_deps.append(str(req))
 
-        if not ctx.ignore_upstream_versions and len(req.specifier):
+        if req.name in ctx.ignore_specifiers:
+            logger.warning('ignoring specifiers for dependency %s', req.name)
+            debian_deps.append(pdep)
+        elif not ctx.ignore_upstream_versions and len(req.specifier):
             for specifier in req.specifier:
                 # != can't be translated to a package relationship in debian...
                 if specifier.operator != '!=':

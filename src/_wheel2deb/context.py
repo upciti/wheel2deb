@@ -18,6 +18,7 @@ class Context:
     ignore_entry_points = attr.ib(default=False)
     ignore_upstream_versions = attr.ib(default=False)
     ignore_requirements = attr.ib(factory=list)
+    ignore_specifiers = attr.ib(factory=list)
     map = attr.ib(factory=dict)
     depends = attr.ib(factory=list)
     conflicts = attr.ib(factory=list)
