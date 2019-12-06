@@ -32,6 +32,7 @@ Push to Registry:
   script:
     - apk add --update make
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - for i in jessie stretch buster; do docker pull $CI_REGISTRY_IMAGE:$i || true; done
     - IMAGE_NAME=$CI_REGISTRY_IMAGE make images
     - docker push $CI_REGISTRY_IMAGE
   only:
@@ -61,17 +62,17 @@ Push to Docker Hub:
   script:
     - apk add --update make
     - docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+    - for i in jessie stretch buster; do docker pull parkoview/wheel2deb:$i || true; done
     - IMAGE_NAME=parkoview/wheel2deb make images
     - docker push parkoview/wheel2deb
 
 Publish on PyPi:
   stage: deploy
-  image: python:3.6-alpine
+  image: $CI_REGISTRY/tools/twine
   when: manual
   only:
     - /^v.*$/
   except:
     - branches
   script:
-    - pip install twine
     - twine upload dist/*.whl

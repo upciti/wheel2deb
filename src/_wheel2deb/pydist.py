@@ -112,11 +112,6 @@ class Wheel:
         return reqs
 
     @lru_cache(maxsize=None)
-    def run_requires(self, pyvers):
-        env = {'python_version': str(pyvers)}
-        return self.requires(env)
-
-    @lru_cache(maxsize=None)
     def version_range(self, pyvers):
         m = re.search(r'(\d)(\d)', self.python_tag)
         if m:

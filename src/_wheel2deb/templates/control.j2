@@ -8,7 +8,8 @@ Standards-Version: 3.9.6
 Package: {{ package.name }}
 Architecture: {{ package.arch }}
 Depends: {{ package.depends|sort|join(', ') }}
+{%- if ctx.conflicts %}{{ '\n' }}Conflicts: {{ ctx.conflicts|sort|join(', ') }}{% endif %}
+{%- if ctx.provides %}{{ '\n' }}Provides: {{ ctx.provides|sort|join(', ') }}{% endif %}
+{%- if package.homepage %}{{ '\n' }}Homepage: {{ package.homepage }}{% endif %}
 Description: {{ package.description }}
  {{ package.extended_desc }}
-{% if package.homepage %}Homepage: {{ package.homepage }}{% endif %}
-{% if ctx.provides %}Provides: {{ ctx.provides|sort|join(', ') }}{% endif %}
