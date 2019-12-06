@@ -47,7 +47,7 @@ def build_package(cwd):
     output, returncode = shell(args, cwd=cwd)
     logger.debug(output)
     if returncode:
-        logger.error('failed to build package ☹')
+        logger.error('failed to build package in "%s" ☹', str(cwd))
 
     return returncode
 
