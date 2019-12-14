@@ -85,7 +85,8 @@ def search_python_deps(ctx, wheel, extras=None):
     # https://www.python.org/dev/peps/pep-0508/#environment-markers
     requirements = wheel.requires({
         'platform_machine': ctx.platform_machine,
-        'python_version': str(ctx.python_version)
+        'python_version': str(ctx.python_version),
+        'extra': ctx.extra
     })
 
     # filter out ignored requirements

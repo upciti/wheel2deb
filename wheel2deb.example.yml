@@ -1,0 +1,12 @@
+# change setting for all wheels
+.:
+  maintainer_name: "Me"
+  maintainer_email: "me@example.com"
+
+# ignore entrypoints of a wheel
+cffi:
+  ignore_entry_points: True
+
+# add an extra to a wheel
+docker:
+  extra: ssh
