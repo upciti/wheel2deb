@@ -2,7 +2,6 @@ import os.path
 import attr
 import re
 import glob
-from shutil import rmtree
 from tempfile import mkdtemp
 from functools import lru_cache
 from pathlib import Path
@@ -18,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 WHEEL_NAME_RE = re.compile(
     r'^(?P<name>.+)-(?P<version>.+)-(?P<python_tag>[pcij].+)'
-    r'-(?P<abi_tag>.+)-(?P<arch_tag>.+).whl$')
+    r'-(?P<abi_tag>.+)-(?P<platform_tag>.+).whl$')
 
 
 @attr.s(frozen=True)
@@ -94,7 +93,7 @@ class Wheel:
         self.version = g['version']
         self.python_tag = g['python_tag']
         self.abi_tag = g['abi_tag']
-        self.arch_tag = g['arch_tag']
+        self.platform_tag = g['platform_tag']
 
         self._unpack()
         self._parse()
