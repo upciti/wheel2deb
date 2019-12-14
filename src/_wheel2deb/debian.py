@@ -155,7 +155,8 @@ class SourcePackage:
 
         if self.wheel.entrypoints and not self.ctx.ignore_entry_points:
             self.run_install_scripts()
-            install.add('entrypoints/* /usr/bin/')
+            if (Path(self.root) / 'entrypoints').exists():
+                install.add('entrypoints/* /usr/bin/')
 
         for script in self.wheel.record.scripts:
             install.add(str(self.src / script) + ' /usr/bin/')

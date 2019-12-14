@@ -30,7 +30,6 @@ class Context:
         default='{epoch}:{upstream_version}-{revision}~w2d{w2d_version[0]}')
 
     def update(self, changes):
-        args = changes.copy()
         for k, v in changes.items():
             if v and hasattr(self, k):
                 setattr(self, k, changes[k])
