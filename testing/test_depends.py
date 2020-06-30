@@ -1,4 +1,4 @@
-from _wheel2deb.depends import suggest_name, search_python_deps
+from _wheel2deb.depends import suggest_name, search_python_deps, get_dependency_string
 from _wheel2deb.context import Context
 from _wheel2deb.pyvers import Version
 from _wheel2deb.pydist import Wheel
@@ -23,3 +23,22 @@ def test_search_python_deps(wheel_path):
 
     assert deps[0].startswith('python3-py (>= 0.1')
     assert not missing_deps
+
+def test_get_dependency_string():
+    assert get_dependency_string("python3-py", "==", "1.2.3") == "python3-py (<< 1.3)"
+    assert get_dependency_string("python3-py", "==", "1.2.*") == "python3-py (<< 1.3)"
+    assert get_dependency_string("python3-py", "==", "1.2") == "python3-py (<< 1.3)"
+    assert get_dependency_string("python3-py", "==", "1.*") == "python3-py (<< 2)"
+    assert get_dependency_string("python3-py", "==", "1") == "python3-py (<< 2)"
+
+    assert get_dependency_string("python3-py", ">=", "1.2.3") == "python3-py (>= 1.2.3)"
+    assert get_dependency_string("python3-py", ">=", "1.2.*") == "python3-py (>= 1.2)"
+    assert get_dependency_string("python3-py", ">=", "1.2") == "python3-py (>= 1.2)"
+    assert get_dependency_string("python3-py", ">=", "1.*") == "python3-py (>= 1)"
+    assert get_dependency_string("python3-py", ">=", "1") == "python3-py (>= 1)"
+
+    assert get_dependency_string("python3-py", "<=", "1.2.3") == "python3-py (<= 1.2.3-+)"
+    assert get_dependency_string("python3-py", "<=", "1.2.*") == "python3-py (<= 1.2-+)"
+    assert get_dependency_string("python3-py", "<=", "1.2") == "python3-py (<= 1.2-+)"
+    assert get_dependency_string("python3-py", "<=", "1.*") == "python3-py (<= 1-+)"
+    assert get_dependency_string("python3-py", "<=", "1") == "python3-py (<= 1-+)"

@@ -31,7 +31,7 @@ images:
 check:
 	@flake8 src
 
-tests:
+tests: bdist
 	$(eval images := $(foreach a,$(DEBIAN_DISTS),$(IMAGE_NAME):$(a)))
 	$(call map,run_tests,$(images))
 

@@ -33,7 +33,9 @@ def normalize_package_version(python_package_version, prerelease_workaround=True
     """
     # Credits to https://github.com/paylogic/py2deb/blob/master/py2deb/utils.py
     # Lowercase and remove invalid characters from the version string.
-    version = re.sub('[^a-z0-9.+]+', '-', python_package_version.lower()).strip('-')
+    # Points (".") are stripped as well, since we end up with a trailing 
+    # point with versions like "7.*"
+    version = re.sub('[^a-z0-9.+]+', '-', python_package_version.lower()).strip('-').strip('.')
     if prerelease_workaround:
         # Translate the PEP 440 pre-release identifier 'c' to 'rc'.
         version = re.sub(r'(\d)c(\d)', r'\1rc\2', version)
@@ -138,29 +140,38 @@ def search_python_deps(ctx, wheel, extras=None):
 
         if req.name in ctx.ignore_specifiers:
             logger.warning('ignoring specifiers for dependency %s', req.name)
-            debian_deps.append(pdep)
+            debian_deps.append(pdep, specifier.operator, specifier.version)
         elif not ctx.ignore_upstream_versions and len(req.specifier):
             for specifier in req.specifier:
-                # != can't be translated to a package relationship in debian...
-                if specifier.operator != '!=':
-                    v = normalize_package_version(specifier.version)
-                    # replace == specifier a << x.y+1.z
-                    # the == specifier is itself translated to a >= x.y.z
-                    if specifier.operator == '==':
-                        parsed = parse(v)
-                        debian_deps.append(
-                            '%s (<< %s.%s)'
-                            % (pdep, parsed.release[0], parsed.release[1]+1))
-                    if specifier.operator == '<=':
-                        v += '-+'
-                    debian_deps.append(
-                        '%s (%s %s)'
-                        % (pdep, _translate_op(specifier.operator), v))
+                dep = get_dependency_string(pdep, specifier.operator, specifier.version)
+                if dep is not None:
+                    debian_deps.append(dep)
         else:
             debian_deps.append(pdep)
 
     return debian_deps, missing_deps
 
+
+def get_dependency_string(package_name, operator, version):
+    """
+    Gets a dependency string for a package based on an operator and version.
+    """
+     # != can't be translated to a package relationship in debian...
+    if operator != '!=':
+        v = normalize_package_version(version)
+        if operator == '==':
+            parsed = parse(v)
+            if len(parsed.release) == 1:
+                # For versions of the form "x" or "x.*". This will return "{x+1}.0"
+                return '%s (<< %s)' % (package_name, parsed.release[0]+1)
+            elif len(parsed.release) > 1:
+                # For version of the form "x.y" or "x.y.z". This will return "x.{y+1}"
+                return '%s (<< %s.%s)' % (package_name, parsed.release[0], parsed.release[1]+1)
+        if operator == '<=':
+            v += '-+'
+        return '%s (%s %s)' % (package_name, _translate_op(operator), v)
+
+    return None
 
 def _translate_op(operator):
     """
