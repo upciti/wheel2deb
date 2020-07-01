@@ -140,7 +140,7 @@ def search_python_deps(ctx, wheel, extras=None):
 
         if req.name in ctx.ignore_specifiers:
             logger.warning('ignoring specifiers for dependency %s', req.name)
-            debian_deps.append(pdep, specifier.operator, specifier.version)
+            debian_deps.append(pdep)
         elif not ctx.ignore_upstream_versions and len(req.specifier):
             for specifier in req.specifier:
                 dep = get_dependency_string(pdep, specifier.operator, specifier.version)
