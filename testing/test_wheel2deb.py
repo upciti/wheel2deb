@@ -87,8 +87,12 @@ def test_conversion(tmp_path, wheel_path):
 
     package_hash = digests(package_list[0])
 
+    endpoint_python_version = ""
+    if sys.version_info[0] >= 3:
+        endpoint_python_version = str(sys.version_info[0])
+
     # check that the entrypoint will be installed in /usr/bin
-    entrypoint = (unpack_path / 'debian/python3-foobar/usr/bin/entrypoint')
+    entrypoint = (unpack_path / ('debian/python3-foobar/usr/bin/entrypoint'+endpoint_python_version))
     assert entrypoint.exists()
 
     # check shebang

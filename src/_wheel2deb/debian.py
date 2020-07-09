@@ -334,9 +334,25 @@ class SourcePackage:
         config = configparser.ConfigParser()
         config.read_string(self.wheel.entrypoints)
 
+        # Some python debian packages have separate python2 and python3
+        # Debian packages released. If a package has a `console_scripts`
+        # entry, and the python2 version of a debian package is already
+        # installed, when we attempt to install a python3 package created
+        # by wheel2deb, it will fail because apt will not let it overwrite
+        # an existing file.
+        # An example of this is the `pyjwt` package: for the officially
+        # released Debian packages, this creates `/usr/bin/pyjwt` (apt install
+        # python-jwt) and `/usr/bin/pyjwt3` (apt install python3-jwt).
+        # The code below follows a similar pattern, by appending the python
+        # major version to `console_scripts` entries for versions greater
+        # than three.
+        endpoint_python_version = ""
+        if self.pyvers.major >= 3:
+            endpoint_python_version = str(self.pyvers.major)
+
         entrypoints = {}
         for section in config:
-            x = ['%s=%s' % k for k in config.items(section)]
+            x = ['%s%s=%s' % (k[0], endpoint_python_version, k[1]) for k in config.items(section)]
             if x:
                 entrypoints[section] = x
 
