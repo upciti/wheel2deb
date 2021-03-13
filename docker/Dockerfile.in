@@ -1,5 +1,5 @@
 FROM _IMAGE_
-LABEL maintainer="fyhertz@gmail.com"
+LABEL maintainer="simon.guigui@upciti.com"
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8

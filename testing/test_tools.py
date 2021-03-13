@@ -9,7 +9,7 @@ def test_parse_debian_control(tmp_path):
         f.write("""Source: python-absl-py
 Section: python
 Priority: optional
-Maintainer: wheel2deb <wheel2deb@parkoview.com>
+Maintainer: wheel2deb <wheel2deb@upciti.com>
 Build-Depends: debhelper
 Standards-Version: 3.9.6
 

@@ -8,7 +8,7 @@ from .pyvers import Version
 @attr.s
 class Context:
     maintainer_name = attr.ib(default='wheel2deb')
-    maintainer_email = attr.ib(default='wheel2deb@parkoview.com')
+    maintainer_email = attr.ib(default='wheel2deb@upciti.com')
     distribution = attr.ib(default='unstable')
     python_version = attr.ib(
         converter=lambda x: Version.from_str(x) if isinstance(x, str) else x,

@@ -1,7 +1,7 @@
 MAKE := $(MAKE) --no-print-directory
 SHELL = sh
 
-IMAGE_NAME ?= parkoview/wheel2deb
+IMAGE_NAME ?= wheel2deb
 
 DEBIAN_DISTS := stretch buster
 
@@ -31,7 +31,7 @@ images:
 check:
 	@flake8 src
 
-tests: bdist
+tests:
 	$(eval images := $(foreach a,$(DEBIAN_DISTS),$(IMAGE_NAME):$(a)))
 	$(call map,run_tests,$(images))
 
@@ -44,10 +44,6 @@ clean:
 	@find -type f -name '*.pyc' -delete
 
 .PHONY: default bdist images clean publish check
-
-define build_jessie_image
-	cat docker/Dockerfile.in | sed s/_IMAGE_/debian:jessie-patched/ | docker build -t $(IMAGE_NAME):jessie --cache-from $(IMAGE_NAME):jessie -f - dist;
-endef
 
 define build_debian_image
 	cat docker/Dockerfile.in | sed s/_IMAGE_/debian:$(1)-slim/ | docker build -t $(IMAGE_NAME):$(1) --cache-from $(IMAGE_NAME):$(1) -f - dist;
