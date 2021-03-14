@@ -10,16 +10,20 @@ class Version:
 
     @classmethod
     def from_str(cls, version_str):
-        m = re.match(r'(\d)(?:\.(\d))?(?:\.(\d))?', version_str)
+        m = re.match(r"(\d)(?:\.(\d))?(?:\.(\d))?", version_str)
         v = list(map(lambda i: int(i) if i else 0, m.groups()))
         return cls(v[0], v[1], v[2])
 
     def inc(self):
-        return Version(self.major, self.minor+1, 0)
+        return Version(self.major, self.minor + 1, 0)
 
     def __str__(self):
-        return str(self.major) + '.' + str(self.minor) + \
-               (('.' + str(self.micro)) if self.micro else '')
+        return (
+            str(self.major)
+            + "."
+            + str(self.minor)
+            + (("." + str(self.micro)) if self.micro else "")
+        )
 
 
 @attr.s(frozen=True)

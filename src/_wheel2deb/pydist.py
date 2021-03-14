@@ -16,8 +16,9 @@ from .pyvers import VersionRange, Version
 logger = logging.getLogger(__name__)
 
 WHEEL_NAME_RE = re.compile(
-    r'^(?P<name>.+)-(?P<version>.+)-(?P<python_tag>[pcij].+)'
-    r'-(?P<abi_tag>.+)-(?P<platform_tag>.+).whl$')
+    r"^(?P<name>.+)-(?P<version>.+)-(?P<python_tag>[pcij].+)"
+    r"-(?P<abi_tag>.+)-(?P<platform_tag>.+).whl$"
+)
 
 
 @attr.s(frozen=True)
@@ -25,8 +26,9 @@ class Record:
     """
     Entries of *.dist-info/RECORD organized in categories
     """
-    LICENSE_RE = re.compile(r'license', re.IGNORECASE)
-    SHLIBS_RE = re.compile(r'\.so[.\d]*')
+
+    LICENSE_RE = re.compile(r"license", re.IGNORECASE)
+    SHLIBS_RE = re.compile(r"\.so[.\d]*")
 
     libs = attr.ib(factory=list)
     lib_dirs = attr.ib(factory=list)
@@ -36,29 +38,28 @@ class Record:
 
     @classmethod
     def from_str(cls, content):
-        files = [line.rstrip().split(',')[0] for line in content.split('\n')]
+        files = [line.rstrip().split(",")[0] for line in content.split("\n")]
         record = Record()
         for file in files:
             if re.search(cls.LICENSE_RE, file):
-                logger.debug('found license: %s', file)
+                logger.debug("found license: %s", file)
                 record.licenses.append(file)
                 continue
 
-            if '.data/scripts/' in file:
-                logger.debug('found script: %s', file)
+            if ".data/scripts/" in file:
+                logger.debug("found script: %s", file)
                 record.scripts.append(file)
                 continue
 
             if re.findall(cls.SHLIBS_RE, os.path.basename(file)):
-                logger.debug('found shared lib: %s', file)
+                logger.debug("found shared lib: %s", file)
                 record.libs.append(file)
 
             if file:
                 # everything else
                 record.files.append(file)
 
-        record.lib_dirs.extend(
-            list(set(os.path.dirname(x) for x in record.libs)))
+        record.lib_dirs.extend(list(set(os.path.dirname(x) for x in record.libs)))
 
         return record
 
@@ -77,32 +78,33 @@ class Wheel:
         # relative path to wheel file
         self.filepath = Path(filepath)
         self.filename = self.filepath.name
-        self.extract_path = Path(extract_path) \
-            if extract_path else Path(mkdtemp()) / self.filename[:-4]
+        self.extract_path = (
+            Path(extract_path) if extract_path else Path(mkdtemp()) / self.filename[:-4]
+        )
 
         if not filepath.exists():
-            raise ValueError('No such file: %s' % filepath)
+            raise ValueError("No such file: %s" % filepath)
 
-        if not self.filename.endswith('.whl'):
-            raise ValueError('Not a known wheel archive format: %s' % filepath)
+        if not self.filename.endswith(".whl"):
+            raise ValueError("Not a known wheel archive format: %s" % filepath)
 
         # parse wheel name
         # https://www.python.org/dev/peps/pep-0425
         g = re.match(WHEEL_NAME_RE, self.filename).groupdict()
-        self.name = normalize_name(g['name'])
-        self.version = g['version']
-        self.python_tag = g['python_tag']
-        self.abi_tag = g['abi_tag']
-        self.platform_tag = g['platform_tag']
+        self.name = normalize_name(g["name"])
+        self.version = g["version"]
+        self.python_tag = g["python_tag"]
+        self.abi_tag = g["abi_tag"]
+        self.platform_tag = g["platform_tag"]
 
         self._unpack()
         self._parse()
 
     def requires(self, env=None):
         if not env:
-            env = {'extra': ''}
-        elif env and 'extra' not in env:
-            env['extra'] = ''
+            env = {"extra": ""}
+        elif env and "extra" not in env:
+            env["extra"] = ""
         reqs = [Requirement(req) for req in self.metadata.requires_dist]
         reqs = filter(lambda r: not r.marker or r.marker.evaluate(env), reqs)
         reqs = list(reqs)
@@ -112,7 +114,7 @@ class Wheel:
 
     @lru_cache(maxsize=None)
     def version_range(self, pyvers):
-        m = re.search(r'(\d)(\d)', self.python_tag)
+        m = re.search(r"(\d)(\d)", self.python_tag)
         if m:
             v = Version(*m.groups())
             if pyvers.major != v.major:
@@ -123,8 +125,7 @@ class Wheel:
         # TODO: use requires_python ?
         versions = []
         for classifier in self.metadata.classifiers:
-            m = re.match(
-                r'Programming Language :: Python :: ([\d.]+)', classifier)
+            m = re.match(r"Programming Language :: Python :: ([\d.]+)", classifier)
             if m:
                 version = Version.from_str(m.group(1))
                 if version.major == pyvers.major and version.minor != 0:
@@ -141,7 +142,7 @@ class Wheel:
 
     @lru_cache(maxsize=None)
     def version_supported(self, pyvers):
-        m = re.search(r'(?:py|cp)%s' % pyvers.major, self.python_tag)
+        m = re.search(r"(?:py|cp)%s" % pyvers.major, self.python_tag)
         if not m:
             return False
 
@@ -157,7 +158,7 @@ class Wheel:
     @property
     @lru_cache(maxsize=None)
     def cpython_supported(self):
-        if re.search(r'(?:py|cp)', self.python_tag):
+        if re.search(r"(?:py|cp)", self.python_tag):
             return True
         return False
 
@@ -176,17 +177,17 @@ class Wheel:
         return self.filename
 
     def _parse(self):
-        info_dir = Path(glob.glob(str(self.extract_path / '*.dist-info'))[0])
+        info_dir = Path(glob.glob(str(self.extract_path / "*.dist-info"))[0])
 
         # parse .dist-info/METADATA
-        self.metadata = Metadata((info_dir / 'METADATA').read_text())
+        self.metadata = Metadata((info_dir / "METADATA").read_text())
 
         # parse .dist-info/RECORD
-        self.record = Record.from_str((info_dir / 'RECORD').read_text())
+        self.record = Record.from_str((info_dir / "RECORD").read_text())
 
         try:
             # parse .dist-info/entry_points.txt
-            self.entrypoints = (info_dir / 'entry_points.txt').read_text()
+            self.entrypoints = (info_dir / "entry_points.txt").read_text()
         except FileNotFoundError:
             self.entrypoints = None
 
@@ -197,4 +198,4 @@ def normalize_name(name):
     and MUST consider hyphens and underscores to be equivalent.
     https://www.python.org/dev/peps/pep-0426/#name
     """
-    return name.replace('-', '_').lower()
+    return name.replace("-", "_").lower()

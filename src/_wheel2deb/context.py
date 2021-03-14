@@ -7,27 +7,29 @@ from .pyvers import Version
 
 @attr.s
 class Context:
-    maintainer_name = attr.ib(default='wheel2deb')
-    maintainer_email = attr.ib(default='wheel2deb@upciti.com')
-    distribution = attr.ib(default='unstable')
+    maintainer_name = attr.ib(default="wheel2deb")
+    maintainer_email = attr.ib(default="wheel2deb@upciti.com")
+    distribution = attr.ib(default="unstable")
     python_version = attr.ib(
         converter=lambda x: Version.from_str(x) if isinstance(x, str) else x,
-        default=platform.python_version())
+        default=platform.python_version(),
+    )
     platform_machine = attr.ib(default=platform.machine())
-    arch = attr.ib(default='')
+    arch = attr.ib(default="")
     ignore_entry_points = attr.ib(default=False)
     ignore_upstream_versions = attr.ib(default=False)
     ignore_requirements = attr.ib(factory=list)
     ignore_specifiers = attr.ib(factory=list)
-    extra = attr.ib(default='')
+    extra = attr.ib(default="")
     map = attr.ib(factory=dict)
     depends = attr.ib(factory=list)
     conflicts = attr.ib(factory=list)
     provides = attr.ib(factory=list)
-    revision = attr.ib(default='1')
+    revision = attr.ib(default="1")
     epoch = attr.ib(default=0, converter=int)
     version_template = attr.ib(
-        default='{epoch}:{upstream_version}-{revision}~w2d{w2d_version[0]}')
+        default="{epoch}:{upstream_version}-{revision}~w2d{w2d_version[0]}"
+    )
 
     def update(self, changes):
         for k, v in changes.items():
@@ -49,7 +51,8 @@ class Settings:
 
 
 def load(file=None):
-    with open(file, 'r') as f:
+    with open(file, "r") as f:
         import yaml
+
         config = yaml.safe_load(f)
     return Settings(config)

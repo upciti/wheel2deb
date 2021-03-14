@@ -5,8 +5,9 @@ from .logger import logging
 
 # https://www.debian.org/doc/debian-policy/ch-controlfields.html#version
 PACKAGE_VER_RE = re0 = re.compile(
-    r'^(?:(?P<epoch>\d+):)?'
-    r'(?P<version>(?:[\w\.~\-]+(?=-(?P<revision>[^-]+$)))|[\w\.~\-]+)')
+    r"^(?:(?P<epoch>\d+):)?"
+    r"(?P<version>(?:[\w\.~\-]+(?=-(?P<revision>[^-]+$)))|[\w\.~\-]+)"
+)
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +31,7 @@ class Package:
 
     def __str__(self):
         # show only package name and upstream version
-        return '{}=={}'.format(self.name, self.version)
+        return "{}=={}".format(self.name, self.version)
 
 
 def search_packages(names, arch):
@@ -42,12 +43,12 @@ def search_packages(names, arch):
         _cache = apt.Cache()
         _cache.open()
 
-    logger.debug('searching %s in apt cache...', ' '.join(names))
+    logger.debug("searching %s in apt cache...", " ".join(names))
 
     for name in names:
         if name in _cache:
             yield Package.factory(name, _cache[name].versions[0].version)
-        elif arch and name+':'+arch in _cache:
-            yield Package.factory(name, _cache[name+':'+arch].versions[0].version)
+        elif arch and name + ":" + arch in _cache:
+            yield Package.factory(name, _cache[name + ":" + arch].versions[0].version)
         else:
             yield None
