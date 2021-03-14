@@ -3,10 +3,6 @@ SHELL = sh
 
 IMAGE_NAME ?= wheel2deb
 
-DEBIAN_DISTS := stretch buster
-
-map = $(foreach a,$(2),$(call $(1),$(a)))
-
 default:
 	@echo "Makefile for wheel2deb"
 	@echo
@@ -14,9 +10,9 @@ default:
 	@echo
 	@echo '    make check      check coding style (PEP-8, PEP-257)'
 	@echo '    make bdist      build python wheel'
-	@echo '    make images     build docker images'
+	@echo '    make image      build docker images'
 	@echo '    make clean      cleanup all temporary files'
-	@echo '    make tests      run pytest in docker images'
+	@echo '    make tests      run pytest in docker image'
 	@echo '    make publish    push release to pypi'
 	@echo
 
@@ -24,16 +20,14 @@ bdist:
 	@rm -f dist/*.whl
 	@python3 setup.py bdist_wheel
 
-images:
-	@cp docker/dh-autoreconf_* dist/
-	$(call map,build_debian_image,$(DEBIAN_DISTS))
+image:
+	@docker build -t wheel2deb .
 
 check:
 	@flake8 src
 
-tests:
-	$(eval images := $(foreach a,$(DEBIAN_DISTS),$(IMAGE_NAME):$(a)))
-	$(call map,run_tests,$(images))
+tests: image
+	@docker run -v $(CURDIR):/data --entrypoint "" wheel2deb py.test --cov
 
 publish: clean bdist
 	twine upload dist/*.whl
@@ -44,15 +38,3 @@ clean:
 	@find -type f -name '*.pyc' -delete
 
 .PHONY: default bdist images clean publish check
-
-define build_debian_image
-	cat docker/Dockerfile.in | sed s/_IMAGE_/debian:$(1)-slim/ | docker build -t $(IMAGE_NAME):$(1) --cache-from $(IMAGE_NAME):$(1) -f - dist;
-endef
-
-define run_tests
-	docker run -v $(CURDIR):/data --entrypoint "" $(1) /bin/sh -c " \
-		pip install dist/*.whl \
-		&& rm -rf testing/__pycache__ \
-		&& py.test --cov"; \
-	if (test $$? -ne 0); then exit 1; fi;
-endef

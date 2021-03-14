@@ -1,7 +1,0 @@
-# Dummy dh-autoreconf package made with equivs to avoid ~90MB of dependencies
-# debhelper depends on dh-autoreconf but we don't actually need it
-Section: devel
-Priority: optional
-Standards-Version: 3.9.2
-Package: dh-autoreconf
-Version: 14
