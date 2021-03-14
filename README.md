@@ -90,6 +90,6 @@ Please use the [GitHub issue tracker](<https://github.com/parkoview/wheel2deb/is
 
 ## License
 
-Copyright Parkoview SA 2019.
+Copyright Parkoview SA 2019-2021.
 
 Distributed under the terms of the [MIT](https://github.com/parkoview/wheel2deb/blob/master/LICENSE) license, wheel2deb is free and open source software.

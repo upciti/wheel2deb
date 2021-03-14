@@ -20,8 +20,6 @@ install:
   - pip install coveralls
 
 script:
-  - make bdist
-  - make images
   - make tests
 
 after_success:
