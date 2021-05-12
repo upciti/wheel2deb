@@ -148,7 +148,7 @@ class SourcePackage:
         """
         self.dump_tpl(
                 "changelog.j2",
-                self.debian / "changelog"
+                self.debian / "changelog",
                 timestamp=debian.changelog.format_date()
             )
 
