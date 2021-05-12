@@ -139,9 +139,7 @@ class SourcePackage:
         """
         Generate debian/source/format
         """
-        self.dump_tpl("control.j2", self.debian / "source")
-        with (self.debian / "source/format").open(mode="w") as f:
-            f.write("3.0 (quilt)")
+        self.dump_tpl("source_format.j2", self.debian / "source/format")
 
     def changelog(self):
         """
