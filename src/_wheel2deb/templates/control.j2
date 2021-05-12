@@ -4,13 +4,17 @@ Priority: optional
 Maintainer: {{ ctx.maintainer_name }} <{{ ctx.maintainer_email }}>
 Build-Depends:
  debhelper-compat (= 12),
+ dh-sequence-python3,
+ dh-python,
+ python3-all-dev,
+ python3-setuptools,
 Standards-Version: 4.5.1
 
 Package: {{ package.name }}
 Architecture: {{ package.arch }}
 Depends:
  ${misc:Depends},
- {{ package.depends|sort|join(', ') }}
+ {{ package.depends|sort|join(',\n ') }}
 {%- if ctx.conflicts %}{{ '\n' }}Conflicts: {{ ctx.conflicts|sort|join(', ') }}{% endif %}
 {%- if ctx.provides %}{{ '\n' }}Provides: {{ ctx.provides|sort|join(', ') }}{% endif %}
 {%- if package.homepage %}{{ '\n' }}Homepage: {{ package.homepage }}{% endif %}

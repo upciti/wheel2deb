@@ -60,10 +60,16 @@ class SourcePackage:
         # debian package name
         self.name = suggest_name(ctx, wheel.name)
 
+        self.upstream_version = normalize_package_version(self.wheel.version)
+
+        epoch = ctx.epoch
+        if ctx.epoch == 0:
+            epoch = None
+
         # debian package version
         self.version = ctx.version_template.format(
-            epoch=ctx.epoch,
-            upstream_version=normalize_package_version(self.wheel.version),
+            epoch=epoch,
+            upstream_version=self.upstream_version,
             revision=ctx.revision,
             w2d_version=__version__,
         )

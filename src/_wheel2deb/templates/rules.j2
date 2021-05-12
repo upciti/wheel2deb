@@ -1,7 +1,9 @@
 #!/usr/bin/make -f
 
-%:
-	dh $@
+export PYBUILD_NAME={{ package.module_name }}
 
-override_dh_shlibdeps:
-	true
+%:
+	dh $@ --buildsystem=pybuild
+
+override_dh_auto_test:
+	# Don't run the tests!
