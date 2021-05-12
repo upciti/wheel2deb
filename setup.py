@@ -9,7 +9,8 @@ INSTALL_REQUIRES = [
     'attrs>=17',
     'packaging',
     'pyyaml',
-    'dirsync'
+    'dirsync',
+    'python-debian'
 ]
 
 version_template = """\
