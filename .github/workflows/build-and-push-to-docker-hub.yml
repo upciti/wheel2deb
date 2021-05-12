@@ -14,11 +14,6 @@ jobs:
   build-push-docker-hub:
     runs-on: ubuntu-20.04
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2.2.0
-        with:
-          fetch-depth: 0
-
       - name: Build, don't push (test)
         if: github.ref != 'refs/heads/master'
         uses: docker/build-push-action@v2
