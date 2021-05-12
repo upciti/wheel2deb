@@ -8,7 +8,7 @@ on:
     - cron:  '0 0 * * *'
 
 env:
-  docker_repo: deb-build
+  docker_repo: wheel2deb
 
 jobs:
   build-push-docker-hub:
