@@ -8,7 +8,7 @@ WORKDIR /src
 RUN python3 setup.py bdist_wheel
 
 
-FROM debian:buster AS base
+FROM debian:bullseye AS base
 
 RUN apt-get -yq update \
  && apt-get -yq --no-install-suggests --no-install-recommends install \
