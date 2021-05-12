@@ -23,10 +23,14 @@ RUN apt-get -yq update \
     python3-distutils \
     python3-apt \
     python3-pip \
+    python3-setuptools \
+    python3-wheel \
     curl \
  && apt-get clean
 
 RUN pip3 install --no-cache-dir --upgrade pip
+RUN pip3 install --no-cache-dir --upgrade setuptools
+RUN pip3 install --no-cache-dir --upgrade wheel
 RUN pip3 install --no-cache-dir pytest pytest-cov
 
 COPY --from=builder /src/dist/*.whl /
