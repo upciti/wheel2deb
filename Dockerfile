@@ -22,14 +22,11 @@ RUN apt-get -yq update \
     apt-file \
     python3-distutils \
     python3-apt \
+    python3-pip \
     curl \
  && apt-get clean
 
-RUN curl -nSL https://bootstrap.pypa.io/get-pip.py > /tmp/get-pip.py \
-    && chmod +x /tmp/get-pip.py \
-    && python3 /tmp/get-pip.py \
-    && rm /tmp/get-pip.py
-
+RUN pip3 install --no-cache-dir --upgrade pip
 RUN pip3 install --no-cache-dir pytest pytest-cov
 
 COPY --from=builder /src/dist/*.whl /
