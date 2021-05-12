@@ -222,7 +222,9 @@ class SourcePackage:
 
         with (self.wheel.extract_path / license_file).open() as f:
             for line in f.readlines():
-                line = " " + line if not line.strip()
+                if len(line.strip()) != 0:
+                    line = " " + line
+
                 license_content += line
 
         if license_content:
