@@ -9,10 +9,9 @@ RUN cd src && python3 setup.py bdist_wheel
 
 FROM debian:buster AS base
 
-RUN dpkg --add-architecture armhf \
- && apt-get -yq update \
+RUN apt-get -yq update \
  && apt-get -yq --no-install-suggests --no-install-recommends install \
-    libc6:armhf \
+    libc6 \
     binutils-arm-linux-gnueabihf \
     build-essential \
     debhelper \
