@@ -222,7 +222,8 @@ class SourcePackage:
 
         with (self.wheel.extract_path / license_file).open() as f:
             for line in f.readlines():
-                license_content += " " + line
+                line = " " + line if not line.strip()
+                license_content += line
 
         if license_content:
             file = self.debian / "copyright"
