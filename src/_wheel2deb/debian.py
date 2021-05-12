@@ -135,7 +135,7 @@ class SourcePackage:
         """
         Generate debian/source/format
         """
-        f"{self.debian}/source".mkdir()
+        os.mkdir(f"{self.debian}/source")
         with (self.debian / "source/format").open(mode="w") as f:
             f.write("3.0 (quilt)")
 
