@@ -212,6 +212,9 @@ class SourcePackage:
 
         copyrights = sorted(list(copyrights))
 
+        if len(copyrights) == 0:
+            copyrights = ["None"]
+
         logger.debug("found the following copyrights: %s", copyrights)
 
         for file in licenses:
