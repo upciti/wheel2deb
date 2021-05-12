@@ -131,12 +131,13 @@ class SourcePackage:
         """
         self.dump_tpl("control.j2", self.debian / "control")
 
-    def compat(self):
+    def source_format(self):
         """
-        Generate debian/compat
+        Generate debian/source/format
         """
-        with (self.debian / "compat").open(mode="w") as f:
-            f.write("9")
+        f"{self.debian}/source".mkdir()
+        with (self.debian / "source/format").open(mode="w") as f:
+            f.write("3.0 (quilt)")
 
     def changelog(self):
         """
@@ -249,7 +250,7 @@ class SourcePackage:
 
         self.fix_shebangs()
         self.control()
-        self.compat()
+        self.source_format()
         self.changelog()
         self.install()
         self.rules()

@@ -2,12 +2,15 @@ Source: {{ package.name }}
 Section: python
 Priority: optional
 Maintainer: {{ ctx.maintainer_name }} <{{ ctx.maintainer_email }}>
-Build-Depends: debhelper
-Standards-Version: 3.9.6
+Build-Depends:
+ debhelper-compat (= 12),
+Standards-Version: 4.5.1
 
 Package: {{ package.name }}
 Architecture: {{ package.arch }}
-Depends: {{ package.depends|sort|join(', ') }}
+Depends:
+ ${misc:Depends},
+ {{ package.depends|sort|join(', ') }}
 {%- if ctx.conflicts %}{{ '\n' }}Conflicts: {{ ctx.conflicts|sort|join(', ') }}{% endif %}
 {%- if ctx.provides %}{{ '\n' }}Provides: {{ ctx.provides|sort|join(', ') }}{% endif %}
 {%- if package.homepage %}{{ '\n' }}Homepage: {{ package.homepage }}{% endif %}
