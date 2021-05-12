@@ -2,7 +2,6 @@ import attr
 import platform
 import re
 
-import debian.changelog
 from .pyvers import Version
 
 
@@ -31,7 +30,6 @@ class Context:
     version_template = attr.ib(
         default="{epoch}:{upstream_version}-{revision}~w2d{w2d_version[0]}"
     )
-    timestamp = debian.changelog.format_date()
 
     def update(self, changes):
         for k, v in changes.items():

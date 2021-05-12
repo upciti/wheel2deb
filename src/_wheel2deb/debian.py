@@ -3,6 +3,7 @@ import re
 from pathlib import Path
 from dirsync import sync
 
+import debian.changelog
 from jinja2 import Template, Environment
 
 from . import TEMPLATE_PATH
@@ -145,7 +146,11 @@ class SourcePackage:
         """
         Generate debian/changelog
         """
-        self.dump_tpl("changelog.j2", self.debian / "changelog")
+        self.dump_tpl(
+                "changelog.j2",
+                self.debian / "changelog"
+                timestamp=debian.changelog.format_date()
+            )
 
     def install(self):
         """
