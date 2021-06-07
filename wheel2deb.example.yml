@@ -2,6 +2,7 @@
 .:
   maintainer_name: "Me"
   maintainer_email: "me@example.com"
+  extended_desc: "My extended package description."
 
 # ignore entrypoints of a wheel
 cffi:
