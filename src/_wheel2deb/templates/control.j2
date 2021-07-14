@@ -12,4 +12,4 @@ Depends: {{ package.depends|sort|join(', ') }}
 {%- if ctx.provides %}{{ '\n' }}Provides: {{ ctx.provides|sort|join(', ') }}{% endif %}
 {%- if package.homepage %}{{ '\n' }}Homepage: {{ package.homepage }}{% endif %}
 Description: {{ package.description }}
- {{ package.extended_desc }}
+ {{ ctx.extended_desc }}
