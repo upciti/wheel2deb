@@ -90,6 +90,9 @@ DEBIAN_RULES = """\
 override_dh_shlibdeps:
 	true
 
+override_dh_strip:
+	dh_strip --exclude=/site-packages/ --exclude=/dist-packages/
+
 """
 
 
