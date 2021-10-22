@@ -22,6 +22,7 @@ COPYRIGHT_RE = re.compile(
 DPKG_SHLIBS_RE = re.compile(r"find library (.+\.so[.\d]*) needed")
 
 APT_FILE_RE = re.compile(r"(.*lib.+):\s(?:/usr/lib/|/lib/)")
+LDD_DEP_RE = re.compile(r"\s+lib.+\s=>\s((?:/usr/lib/|/lib/)\S+)")
 
 
 def platform_to_arch(platform_tag):
@@ -284,6 +285,7 @@ class SourcePackage:
         """
         shlibdeps = set()
         missing_libs = set()
+        external_libs = set()
         shlibdeps_file = "shlibdeps.txt"
 
         if (self.root / shlibdeps_file).exists():
@@ -298,6 +300,11 @@ class SourcePackage:
             output = shell(args, cwd=self.root)[0]
             missing_libs.update(DPKG_SHLIBS_RE.findall(output, re.MULTILINE))
 
+            for x in self.wheel.record.libs:
+                lib = str(self.src / x)
+                output = shell(["ldd", lib], cwd=self.root)[0]
+                external_libs.update(LDD_DEP_RE.findall(output, re.MULTILINE))
+
         if missing_libs:
             logger.info(
                 "dpkg-shlibdeps reported the following missing "
@@ -305,29 +312,18 @@ class SourcePackage:
                 missing_libs,
             )
 
+        if external_libs:
+            logger.info(
+                "found the following shared libs dependencies: %s",
+                external_libs,
+            )
+
+        if not shlibdeps:
             # search packages providing those libs
-            for lib in missing_libs:
-                output = shell(["apt-file", "search", lib, "-a", self.arch])[0]
-                packages = set(APT_FILE_RE.findall(output))
-
-                # remove dbg packages
-                packages = [p for p in packages if p[-3:] != "dbg"]
-
-                if not len(packages):
-                    logger.warning("did not find a package providing %s", lib)
-                else:
-                    # we pick the package with the shortest name
-                    packages = sorted(packages, key=len)
-                    shlibdeps.add(packages[0])
-
-                if len(packages) > 1:
-                    logger.warning(
-                        "several packages providing %s: %s, picking %s, "
-                        "edit debian/control to use another one.",
-                        lib,
-                        packages,
-                        packages[0],
-                    )
+            for lib in missing_libs | external_libs:
+                pkg = self.find_package_for_lib(lib)
+                if pkg:
+                    shlibdeps.add(pkg)
 
             with open(str(self.root / shlibdeps_file), "w") as f:
                 f.write("\n".join(shlibdeps))
@@ -336,6 +332,30 @@ class SourcePackage:
             logger.info("detected dependencies: %s", shlibdeps)
 
         self.depends = list(set(self.depends) | shlibdeps)
+
+    def find_package_for_lib(self, lib):
+        output = shell(["apt-file", "search", lib, "-a", self.arch])[0]
+        packages = set(APT_FILE_RE.findall(output))
+
+        # remove dbg packages
+        packages = [p for p in packages if p[-3:] != "dbg"]
+
+        if not len(packages):
+            logger.warning("did not find a package providing %s", lib)
+            return None
+
+        # we pick the package with the shortest name
+        packages = sorted(packages, key=len)
+        if len(packages) > 1:
+            logger.warning(
+                "several packages providing %s: %s, picking %s, "
+                "edit debian/control to use another one.",
+                lib,
+                packages,
+                packages[0],
+            )
+
+        return packages[0]
 
     def run_install_scripts(self):
         import configparser
