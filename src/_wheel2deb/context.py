@@ -38,6 +38,8 @@ class Context:
     def update(self, changes):
         for k, v in changes.items():
             if v and hasattr(self, k):
+                if k == "python_version":
+                    changes[k] = Version.from_str(v) if isinstance(v, str) else v
                 setattr(self, k, changes[k])
 
 
