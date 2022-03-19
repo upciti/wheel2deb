@@ -59,7 +59,7 @@ def parse_args(argv):
         help="Don't include entry points in debian package",
     )
     p.add_argument(
-        "--ignore-upstream-version",
+        "--ignore-upstream-versions",
         action="store_true",
         help="Ignore version specifiers from wheel requirements",
     )
