@@ -1,5 +1,7 @@
 import os
 import re
+import shutil
+import tempfile
 from pathlib import Path
 from dirsync import sync
 
@@ -367,8 +369,10 @@ class SourcePackage:
 
         # cmd.run() creates some files that we don't want in python cwd
         oldcwd = os.getcwd()
-        os.chdir("/tmp")
+        tempdir = tempfile.mkdtemp()
+        os.chdir(tempdir)
         try:
             cmd.run()
         finally:
             os.chdir(oldcwd)
+            shutil.rmtree(tempdir, ignore_errors=True)
