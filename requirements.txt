@@ -3,7 +3,7 @@ wheel
 pkginfo
 jinja2
 colorama
-attrs>=17
+attrs>=20.1
 packaging
 pyyaml
 dirsync

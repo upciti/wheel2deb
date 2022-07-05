@@ -13,6 +13,7 @@ class Context:
     distribution = attr.ib(default="unstable")
     python_version = attr.ib(
         converter=lambda x: Version.from_str(x) if isinstance(x, str) else x,
+        on_setattr=attr.setters.convert,
         default=platform.python_version(),
     )
     platform_machine = attr.ib(default=platform.machine())
