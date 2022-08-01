@@ -1,13 +1,14 @@
-import pytest
-import sys
-import os
 import hashlib
-from unittest.mock import patch
+import os
+import sys
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
+
+import pytest
 
 import wheel2deb
-from wheel2deb import parse_args
 from _wheel2deb.context import load
+from wheel2deb import parse_args
 
 
 def digests(fname):
@@ -51,7 +52,7 @@ def test_load_config_file(tmp_path):
 
 @patch("sys.argv", ["wheel2deb", "-h"])
 def test_help():
-    """ Test wheel2deb -h """
+    """Test wheel2deb -h"""
 
     with TemporaryDirectory() as directory:
         os.chdir(directory)
@@ -61,7 +62,7 @@ def test_help():
 
 
 def test_conversion(tmp_path, wheel_path):
-    """ Test the conversion of a dummy wheel foobar """
+    """Test the conversion of a dummy wheel foobar"""
 
     os.chdir(str(tmp_path))
 

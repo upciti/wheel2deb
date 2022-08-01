@@ -1,9 +1,10 @@
 import os
 import sys
-import pytest
-from tempfile import mkdtemp
 from pathlib import Path
+from tempfile import mkdtemp
 from unittest.mock import patch
+
+import pytest
 
 
 @pytest.fixture(scope="module")

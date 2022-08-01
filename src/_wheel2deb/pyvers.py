@@ -1,5 +1,6 @@
-import attr
 import re
+
+import attr
 
 
 @attr.s(frozen=True)
@@ -10,7 +11,7 @@ class Version:
 
     @classmethod
     def from_str(cls, version_str):
-        m = re.match(r"(\d)(?:\.(\d))?(?:\.(\d))?", version_str)
+        m = re.match(r"(\d)(?:\.(\d+))?(?:\.(\d+))?", version_str)
         v = list(map(lambda i: int(i) if i else 0, m.groups()))
         return cls(v[0], v[1], v[2])
 
@@ -33,7 +34,7 @@ class VersionRange:
 
     @max.validator
     def check(self, attribute, value):
-        """ Enforce max > min. Interval must be open """
+        """Enforce max > min. Interval must be open"""
         if value and value <= self.min:
             raise ValueError("min must be strictly smaller than max")
 

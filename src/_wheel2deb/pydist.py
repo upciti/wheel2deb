@@ -1,17 +1,18 @@
-import os.path
-import attr
-import re
 import glob
-from tempfile import mkdtemp
+import os.path
+import re
 from functools import lru_cache
 from pathlib import Path
+from tempfile import mkdtemp
+
+import attr
 from packaging import specifiers, version
 from packaging.requirements import Requirement
-from wheel.wheelfile import WheelFile
 from pkginfo import Distribution
+from wheel.wheelfile import WheelFile
 
 from .logger import logging
-from .pyvers import VersionRange, Version
+from .pyvers import Version, VersionRange
 
 logger = logging.getLogger(__name__)
 
