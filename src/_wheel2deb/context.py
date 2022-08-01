@@ -1,6 +1,7 @@
-import attr
 import platform
 import re
+
+import attr
 
 from .pyvers import Version
 from .version import __version__

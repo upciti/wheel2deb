@@ -1,0 +1,89 @@
+[tool.poetry]
+name = "wheel2deb"
+version = "0"
+description = "Python wheel to debian package converter"
+repository = "https://github.com/upciti/wheel2deb"
+license = "MIT"
+keywords=["Debian", "DevOps", "Automation", "converter", "package"]
+authors = ["Upciti <support@upciti.com>"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Code Generators",
+]
+readme = "README.md"
+packages = [
+    {include = "_wheel2deb", from  = "src"},
+    {include = "wheel2deb.py", from  = "src"},
+]
+
+[tool.poetry.dependencies]
+python = ">=3.7,<4.0"
+setuptools = "*"
+wheel = "*"
+pkginfo = "*"
+colorama = "*"
+attrs = ">=20.1"
+packaging = "*"
+dirsync = "*"
+PyYAML = "^6"
+Jinja2 = "^3"
+pyinstaller = { version = "*", optional = true }
+
+[tool.poetry.extras]
+pyinstaller = ["pyinstaller"]
+
+[tool.poetry.scripts]
+wheel2deb = "wheel2deb:main"
+
+[tool.poetry.dev-dependencies]
+pytest = "*"
+taskipy = "*"
+pytest-cov = "*"
+flake8 = "*"
+black = "*"
+isort = "*"
+types-PyYAML = "*"
+poetry-dynamic-versioning = ">=0.13.0"
+
+[tool.taskipy.tasks]
+check = """
+isort src tests\
+ && black src tests\
+ && flake8 src tests\
+ && pytest --cov src tests\
+"""
+single_binary_application = """
+pyinstaller --onefile src/wheel2deb/__main__.py --name wheel2deb -s
+"""
+
+[tool.black]
+line-length = 90
+target_version = ['py37']
+exclude = '''
+(
+  /(
+    | \.git
+    | \.venv
+    | \.mypy_cache
+    | src/wheel2deb/templates
+  )/
+)
+'''
+
+[tool.isort]
+line_length = 90
+profile = "black"
+
+[build-system]
+requires = ["poetry>=1.0.2", "poetry-dynamic-versioning"]
+build-backend = "poetry.masonry.api"
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "semver"
+pattern = "(?x)^(?P<base>\\d+\\.\\d+\\.\\d+)(-?((?P<stage>[a-zA-Z]+)\\.?(?P<revision>\\d+)?))?(\\+(?P<tagged_metadata>.+))?$"
+
+[tool.poetry-dynamic-versioning.substitution]
+files = ["src/_wheel2deb/version.py"]

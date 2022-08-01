@@ -19,10 +19,11 @@
 #  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 #  DEALINGS IN THE SOFTWARE.
 
-import sys
-import colorama
 import logging
+import sys
 from logging import ERROR, WARNING
+
+import colorama
 
 colorama.init(autoreset=True)
 

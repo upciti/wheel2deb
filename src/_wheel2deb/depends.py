@@ -1,8 +1,9 @@
 import re
+
 from packaging.version import parse
 
-from .logger import logging
 from .apt import search_packages
+from .logger import logging
 
 logger = logging.getLogger(__name__)
 
@@ -36,9 +37,7 @@ def normalize_package_version(python_package_version, prerelease_workaround=True
     # Points (".") are stripped as well, since we end up with a trailing
     # point with versions like "7.*"
     version = (
-        re.sub("[^a-z0-9.+]+", "-", python_package_version.lower())
-        .strip("-")
-        .strip(".")
+        re.sub("[^a-z0-9.+]+", "-", python_package_version.lower()).strip("-").strip(".")
     )
     if prerelease_workaround:
         # Translate the PEP 440 pre-release identifier 'c' to 'rc'.
@@ -135,9 +134,7 @@ def search_python_deps(ctx, wheel, extras=None):
         version = None
         for candidate in candidates[req.name]:
             if check(candidate):
-                if (
-                    version and parse(candidate.version) < parse(version)
-                ) or not version:
+                if (version and parse(candidate.version) < parse(version)) or not version:
                     version = candidate.version
 
         if not version:

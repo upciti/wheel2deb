@@ -3,21 +3,21 @@ import re
 import shutil
 import tempfile
 from pathlib import Path
+
 from dirsync import sync
 
 from . import TEMPLATE_PATH
+from .depends import normalize_package_version, search_python_deps, suggest_name
 from .logger import logging
 from .tools import shell
 from .version import __version__
-from .depends import suggest_name, search_python_deps, normalize_package_version
 
 logger = logging.getLogger(__name__)
 dirsync_logger = logging.getLogger("dirsync")
 dirsync_logger.setLevel(logging.ERROR)
 
 COPYRIGHT_RE = re.compile(
-    r"(?:copyrights?|\s*©|\s*\(c\))[\s:|,]*"
-    r"((?=.*[a-z])\d{2,4}(?:(?!all\srights).)+)",
+    r"(?:copyrights?|\s*©|\s*\(c\))[\s:|,]*" r"((?=.*[a-z])\d{2,4}(?:(?!all\srights).)+)",
     re.IGNORECASE,
 )
 
@@ -341,6 +341,7 @@ class SourcePackage:
 
     def run_install_scripts(self):
         import configparser
+
         from setuptools.command.install_scripts import install_scripts
         from setuptools.dist import Distribution
 

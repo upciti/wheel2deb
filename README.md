@@ -2,7 +2,6 @@
 
 [![Build Status](https://travis-ci.org/parkoview/wheel2deb.svg?branch=master)](https://travis-ci.org/parkoview/wheel2deb)
 [![Coverage Status](https://coveralls.io/repos/github/parkoview/wheel2deb/badge.svg?branch=master)](https://coveralls.io/github/parkoview/wheel2deb?branch=master)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/581a27ffb7cc4907b52e27430abdc26d)](https://www.codacy.com/app/simon-parkoview/wheel2deb?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=parkoview/wheel2deb&amp;utm_campaign=Badge_Grade)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 [![PyPI version shields.io](https://img.shields.io/pypi/v/wheel2deb.svg)](https://pypi.python.org/pypi/wheel2deb/)
 [![Downloads](https://static.pepy.tech/personalized-badge/wheel2deb?period=total&units=international_system&left_color=blue&right_color=green&left_text=Downloads)](https://pepy.tech/project/wheel2deb)

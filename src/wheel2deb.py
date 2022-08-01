@@ -2,14 +2,15 @@ import argparse
 import os
 import sys
 import time
-from pathlib import Path
-from logging import INFO, DEBUG
 from functools import partial
-from _wheel2deb import tools
+from logging import DEBUG, INFO
+from pathlib import Path
+
 from _wheel2deb import logger as logging
-from _wheel2deb.context import load, Settings
-from _wheel2deb.pydist import Wheel
+from _wheel2deb import tools
+from _wheel2deb.context import Settings, load
 from _wheel2deb.debian import SourcePackage
+from _wheel2deb.pydist import Wheel
 
 logger = logging.getLogger(__name__)
 

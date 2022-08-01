@@ -25,20 +25,8 @@ def shell(args, **kwargs):
     return output.decode("utf-8"), returncode
 
 
-def install_packages(packages):
-    args = "apt-get -y --no-install-recommends install".split(" ") + list(packages)
-    returncode = shell(args)[1]
-
-    if returncode:
-        logger.critical(
-            "failed to install dependencies ☹. did you add the "
-            "host architecture with dpkg --add-architecture ?"
-        )
-    return returncode
-
-
 def build_package(cwd):
-    """ Run dpkg-buildpackage in specified path. """
+    """Run dpkg-buildpackage in specified path."""
     args = ["dpkg-buildpackage", "-us", "-uc"]
     arch = parse_debian_control(cwd)["Architecture"]
     if arch != "all":
@@ -58,7 +46,7 @@ def build_packages(paths, threads=4):
     :param paths: List of paths where dpkg-buildpackage will be called
     :param threads: Number of threads to run in parallel
     """
-    from threading import Thread, Event
+    from threading import Event, Thread
     from time import sleep
 
     paths = paths.copy()
@@ -88,8 +76,8 @@ def parse_debian_control(cwd):
     :param cwd: Path to debian source package
     :return: Dict object with fields as keys
     """
-    from pathlib import Path
     import re
+    from pathlib import Path
 
     if isinstance(cwd, str):
         cwd = Path(cwd)
@@ -112,7 +100,7 @@ def parse_debian_control(cwd):
 
 
 def patch_pathlib():
-    """ Monkey patch pathlib.Path if Path.read_text does not exist. """
+    """Monkey patch pathlib.Path if Path.read_text does not exist."""
 
     def path_read_text(self):
         with self.open("r") as f:
