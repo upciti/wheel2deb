@@ -6,9 +6,9 @@ from pathlib import Path
 
 from dirsync import sync
 
-from . import TEMPLATE_PATH
 from .depends import normalize_package_version, search_python_deps, suggest_name
 from .logger import logging
+from .templates import environment
 from .tools import shell
 from .version import __version__
 
@@ -125,25 +125,6 @@ class SourcePackage:
         else:
             self.install_path = "/usr/lib/python3/dist-packages/"
 
-    def control(self):
-        """
-        Generate debian/control
-        """
-        self.dump_tpl("control.j2", self.debian / "control")
-
-    def compat(self):
-        """
-        Generate debian/compat
-        """
-        with (self.debian / "compat").open(mode="w") as f:
-            f.write("9")
-
-    def changelog(self):
-        """
-        Generate debian/changelog
-        """
-        self.dump_tpl("changelog.j2", self.debian / "changelog")
-
     def install(self):
         """
         Generate debian/install
@@ -175,9 +156,8 @@ class SourcePackage:
         """
         Generate debian/rules
         """
-        self.dump_tpl(
-            "rules.j2",
-            file=self.debian / "rules",
+        self.dump_template(
+            "rules",
             shlibdeps_params="".join(
                 [" -l" + str(self.src / x) for x in self.wheel.record.lib_dirs]
             ),
@@ -217,10 +197,8 @@ class SourcePackage:
                 license_content += " " + line
 
         if license_content:
-            file = self.debian / "copyright"
-            self.dump_tpl(
-                "copyright.j2",
-                file,
+            self.dump_template(
+                "copyright",
                 license=self.license,
                 license_content=license_content,
                 copyrights=copyrights,
@@ -230,42 +208,35 @@ class SourcePackage:
 
         # FIXME: licenses should not be copied by the install script
 
-    def postinst(self):
-        """
-        Generate debian/postinst script
-        """
-        self.dump_tpl("postinst.j2", file=self.debian / "postinst")
-
-    def prerm(self):
-        """
-        Generate debian/prerm script
-        """
-        self.dump_tpl("prerm.j2", file=self.debian / "prerm")
-
     def create(self):
 
         if not self.debian.exists():
             self.debian.mkdir(parents=True)
 
+        for template in [
+            "changelog",
+            "control",
+            "compat",
+            "postinst",
+            "prerm",
+        ]:
+            self.dump_template(template)
+
         self.fix_shebangs()
-        self.control()
-        self.compat()
-        self.changelog()
-        self.install()
         self.rules()
+        self.install()
         self.copyright()
-        self.postinst()
-        self.prerm()
 
         # dpkg-shlibdeps won't work without debian/control
         self.search_shlibs_deps()
-        self.control()
 
-    def dump_tpl(self, tpl_name, file, **kwargs):
-        from jinja2 import Template
+        # re-generate debian/control with deps found by dpkg-shlibdeps
+        self.dump_template("control")
 
-        tpl = (Path(TEMPLATE_PATH) / tpl_name).read_text()
-        Template(tpl).stream(package=self, ctx=self.ctx, **kwargs).dump(str(file))
+    def dump_template(self, template_name, **kwargs):
+        template = environment.get_template(template_name)
+        output_path = str(self.debian / template_name)
+        template.stream(package=self, ctx=self.ctx, **kwargs).dump(output_path)
 
     def fix_shebangs(self):
         files = [self.root / self.src / x for x in self.wheel.record.scripts]
