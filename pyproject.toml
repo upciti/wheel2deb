@@ -18,7 +18,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.10,<4.0"
+python = ">=3.10,<3.11"
 setuptools = "*"
 wheel = "*"
 pkginfo = "*"
@@ -28,7 +28,7 @@ packaging = "*"
 dirsync = "*"
 PyYAML = "^6"
 Jinja2 = "^3"
-pyinstaller = { version = "*", optional = true }
+pyinstaller = { version = "5.4.1", optional = true }
 
 [tool.poetry.extras]
 pyinstaller = ["pyinstaller"]

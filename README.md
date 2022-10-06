@@ -1,12 +1,13 @@
-## wheel2deb: python wheel to debian package converter
+## wheel2deb
 
-[![Build Status](https://travis-ci.org/parkoview/wheel2deb.svg?branch=master)](https://travis-ci.org/parkoview/wheel2deb)
-[![Coverage Status](https://coveralls.io/repos/github/parkoview/wheel2deb/badge.svg?branch=master)](https://coveralls.io/github/parkoview/wheel2deb?branch=master)
+![cicd](https://github.com/upciti/wheel2deb/actions/workflows/cicd.yml/badge.svg)
+[![codecov](https://codecov.io/gh/upciti/wheel2deb/branch/main/graph/badge.svg)](https://codecov.io/gh/upciti/wheel2deb)
+[![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 [![PyPI version shields.io](https://img.shields.io/pypi/v/wheel2deb.svg)](https://pypi.python.org/pypi/wheel2deb/)
 [![Downloads](https://static.pepy.tech/personalized-badge/wheel2deb?period=total&units=international_system&left_color=blue&right_color=green&left_text=Downloads)](https://pepy.tech/project/wheel2deb)
 
-wheel2deb basically takes a list of wheels as input and produces a list of debian binary CPython packages (those prefixed with python- or python3-).
+`wheel2deb` is a python wheel to debian package converter. It takes a list of wheels as input and produces a list of debian binary CPython packages (those prefixed with python- or python3-).
 
 [![asciicast](https://asciinema.org/a/249779.svg)](https://asciinema.org/a/249779)
 
@@ -56,11 +57,9 @@ Keep in mind that you should only convert wheels that have been built for your d
 
 wheel2deb is available from [pypi](https://pypi.org/project/wheel2deb/):
 
-`pip install wheel2deb`
-
-Docker images for jessie, stretch and buster are also available from the [docker hub](https://cloud.docker.com/u/parkoview/repository/docker/parkoview/wheel2deb):
-
-`docker run -ti -v $(pwd):/data wheel2deb:stretch`
+```shell
+pipx install wheel2deb
+```
 
 ## Features
 
@@ -89,10 +88,10 @@ Use `wheel2deb --help` and `wheel2deb build --help` to check all supported optio
 
 ## Bugs/Requests
 
-Please use the [GitHub issue tracker](https://github.com/parkoview/wheel2deb/issues) to submit bugs or request features.
+Please use the [GitHub issue tracker](https://github.com/upciti/wheel2deb/issues) to submit bugs or request features.
 
 ## License
 
-Copyright Parkoview SA 2019-2021.
+Copyright Parkoview SA 2019-2023.
 
-Distributed under the terms of the [MIT](https://github.com/parkoview/wheel2deb/blob/master/LICENSE) license, wheel2deb is free and open source software.
+Distributed under the terms of the [MIT](https://github.com/upciti/wheel2deb/blob/master/LICENSE) license, wheel2deb is free and open source software.
