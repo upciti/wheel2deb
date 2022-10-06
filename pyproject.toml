@@ -18,7 +18,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.7,<4.0"
+python = ">=3.10,<4.0"
 setuptools = "*"
 wheel = "*"
 pkginfo = "*"
@@ -59,7 +59,7 @@ pyinstaller --onefile src/wheel2deb/__main__.py --name wheel2deb -s
 
 [tool.black]
 line-length = 90
-target_version = ['py37']
+target_version = ['py310']
 exclude = '''
 (
   /(
