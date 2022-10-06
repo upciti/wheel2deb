@@ -6,6 +6,7 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 [![PyPI version shields.io](https://img.shields.io/pypi/v/wheel2deb.svg)](https://pypi.python.org/pypi/wheel2deb/)
 [![Downloads](https://static.pepy.tech/personalized-badge/wheel2deb?period=total&units=international_system&left_color=blue&right_color=green&left_text=Downloads)](https://pepy.tech/project/wheel2deb)
+[![WakeMeOps](https://docs.wakemeops.com/badges/wheel2deb.svg)](https://docs.wakemeops.com/packages/wheel2deb)
 
 `wheel2deb` is a python wheel to debian package converter. It takes a list of wheels as input and produces a list of debian binary CPython packages (those prefixed with python- or python3-).
 
@@ -39,11 +40,11 @@ python3 -c "import numpy; numpy.test()"
 
 ## Requirements
 
-`wheel2deb` uses python3-apt to search for debian packages, dpkg-shlibdeps to calculate shared library dependencies and apt-file to search packages providing shared library dependencies. `wheel2deb build` requires the usual tools to build a debian package:
+`wheel2deb` uses `apt-cache` to search for debian packages, `dpkg-shlibdeps` to calculate shared library dependencies and `apt-file` to search packages providing shared library dependencies. `wheel2deb build` requires the usual tools to build a debian package:
 
 ```sh
 apt update
-apt install python3-apt apt-file dpkg-dev fakeroot build-essential devscripts debhelper
+apt install apt-file dpkg-dev fakeroot build-essential devscripts debhelper
 apt-file update
 ```
 
@@ -55,7 +56,33 @@ Keep in mind that you should only convert wheels that have been built for your d
 
 ## Installation
 
-wheel2deb is available from [pypi](https://pypi.org/project/wheel2deb/):
+### From the release page
+
+`wheel2deb` is packaged as a single binary application that you can download from the release page. Using those releases will spare you the hassle of building Python 3.10 on old Debian based distributions.
+
+### With [wakemeops](https://docs.wakemeops.com)
+
+```shell
+sudo apt-get install wheel2deb
+```
+
+### With docker
+
+We currently do not build docker images with `wheel2deb` pre-installed. You can use wakemeops docker images to quickly play with `wheel2deb` on a different distribution than your host.
+
+```shell
+docker run -ti wakemeops/debian:buster
+```
+
+And in the container run:
+
+```
+install_packages wheel2deb
+```
+
+### With [pipx](https://github.com/pipxproject/pipx)
+
+`wheel2deb` is available from [pypi](https://pypi.org/project/wheel2deb/):
 
 ```shell
 pipx install wheel2deb
@@ -85,6 +112,26 @@ Use `wheel2deb --help` and `wheel2deb build --help` to check all supported optio
 | --revision                | Debian package revision. Defaults to 1.                                                                                                                                                            |
 | --ignore-entry-points     | Don't include the wheel entrypoints in the debian package.                                                                                                                                         |
 | --ignore-upstream-version | Ignore version specifiers from wheel requirements. For instance, if foo requires bar>=3.0.0, using this option will produce a debian package simply depending on bar instead of "bar (>= 3.0.0)".  |
+
+## Development
+
+You will need [poetry](https://python-poetry.org/), and probably [pyenv](https://github.com/pyenv/pyenv) if you don't have python 3.10 on your host.
+
+```shell
+poetry install
+```
+
+To run wheel2deb test suite run:
+
+```shell
+poetry run task check
+```
+
+To build a python wheel:
+
+```shell
+poetry run poetry build
+```
 
 ## Bugs/Requests
 
