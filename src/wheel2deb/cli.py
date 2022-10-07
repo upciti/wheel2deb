@@ -73,15 +73,6 @@ option_output_directory: Path = typer.Option(
     help="Directory where debian source packages are generated and built.",
 )
 
-option_target_architecture: str = typer.Option(
-    None,
-    "--arch",
-    envvar="WHEEL2DEB_TARGET_ARCH",
-    help="Architecture of the target debian distribution"
-    "(only needed if you have repos with a different "
-    "arch than your host in your sources.list)",
-)
-
 option_include_wheels: Optional[List[str]] = typer.Option(
     None,
     "--include",
@@ -162,7 +153,6 @@ def default(
     verbose: bool = option_verbose,
     configuration_path: Optional[Path] = option_configuration,
     output_directory: Path = option_output_directory,
-    target_architecture: str = option_target_architecture,
     search_paths: List[Path] = option_search_paths,
     include_wheels: Optional[List[str]] = option_include_wheels,
     exclude_wheels: Optional[List[str]] = option_exclude_wheels,
@@ -181,7 +171,6 @@ def convert(
     verbose: bool = option_verbose,
     configuration_path: Optional[Path] = option_configuration,
     output_directory: Path = option_output_directory,
-    target_architecture: str = option_target_architecture,
     search_paths: List[Path] = option_search_paths,
     include_wheels: Optional[List[str]] = option_include_wheels,
     exclude_wheels: Optional[List[str]] = option_exclude_wheels,

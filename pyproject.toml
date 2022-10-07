@@ -29,6 +29,7 @@ dirsync = "*"
 PyYAML = "^6"
 Jinja2 = "^3"
 pyinstaller = { version = "5.4.1", optional = true }
+rich = "*"
 
 [tool.poetry.extras]
 pyinstaller = ["pyinstaller"]
