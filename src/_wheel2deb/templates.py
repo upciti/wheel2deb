@@ -16,22 +16,20 @@ DEBIAN_COMPAT = """\
 
 DEBIAN_CONTROL = """\
 Source: {{ package.name }}
+Section: python
 Priority: optional
-Maintainer: ops2deb <ops2deb@upciti.com>
-Build-Depends: debhelper{%- if package.build_depends %}, {{ package.build_depends|sort|join(', ') }}{% endif %}
+Maintainer: {{ ctx.maintainer_name }} <{{ ctx.maintainer_email }}>
+Build-Depends: debhelper
 Standards-Version: 3.9.6
-{%- if package.homepage %}{{ '\n' }}Homepage: {{ package.homepage }}{% endif %}
 
 Package: {{ package.name }}
 Architecture: {{ package.arch }}
-{%- if package.provides %}{{ '\n' }}Provides: {{ package.provides|sort|join(', ') }}{% endif %}
-{%- if package.depends %}{{ '\n' }}Depends: {{ package.depends|sort|join(', ') }}{% endif %}
-{%- if package.recommends %}{{ '\n' }}Recommends: {{ package.recommends|sort|join(', ') }}{% endif %}
-{%- if package.replaces %}{{ '\n' }}Replaces: {{ package.replaces|sort|join(', ') }}{% endif %}
-{%- if package.conflicts %}{{ '\n' }}Conflicts: {{ package.conflicts|sort|join(', ') }}{% endif %}
-Description: {{ package.summary }}
-{% if package.description %}{% for line in package.description.split('\n') %} {{ line or '.' }}{{ '\n' if not loop.last else '' }}{% endfor %}{% endif %}
-
+Depends: {{ package.depends|sort|join(', ') }}
+{%- if ctx.conflicts %}{{ '\n' }}Conflicts: {{ ctx.conflicts|sort|join(', ') }}{% endif %}
+{%- if ctx.provides %}{{ '\n' }}Provides: {{ ctx.provides|sort|join(', ') }}{% endif %}
+{%- if package.homepage %}{{ '\n' }}Homepage: {{ package.homepage }}{% endif %}
+Description: {{ package.description }}
+ {{ ctx.extended_desc }}
 """
 
 DEBIAN_POSTINST = """\
