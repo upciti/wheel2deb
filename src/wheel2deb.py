@@ -7,13 +7,14 @@ from logging import DEBUG, INFO
 from pathlib import Path
 
 from _wheel2deb import logger as logging
-from _wheel2deb import tools
+from _wheel2deb.build import build_packages
 from _wheel2deb.context import Settings, load
 from _wheel2deb.debian import SourcePackage
 from _wheel2deb.pydist import Wheel
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_CONFIG_NAME = "wheel2deb.yml"
 EXTRACT_PATH = Path("/tmp/wheel2deb")
 
 
@@ -82,8 +83,8 @@ def debianize(args):
     # load config file
     if args.config:
         settings = load(args.config)
-    elif Path("wheel2deb.yml").is_file():
-        settings = load("wheel2deb.yml")
+    elif Path(DEFAULT_CONFIG_NAME).is_file():
+        settings = load(DEFAULT_CONFIG_NAME)
     else:
         settings = Settings()
 
@@ -122,13 +123,13 @@ def debianize(args):
 
         if not wheel.cpython_supported:
             # ignore wheels that are not cpython compatible
-            logger.warning("%s does not support cpython", wheel.filename)
+            logger.warning(f"{wheel.filename} does not support cpython")
             continue
 
         if not wheel.version_supported(ctx.python_version):
             # ignore wheels that are not compatible specified python version
             logger.warning(
-                "%s does not support python %s", wheel.filename, ctx.python_version
+                f"{wheel.filename} does not support python {ctx.python_version}"
             )
             continue
 
@@ -138,7 +139,7 @@ def debianize(args):
     packages = []
     for wheel in wheels:
         if wheel.filename in args.include:
-            logger.task("Debianizing wheel %s", wheel)
+            logger.task(f"Debianizing wheel {wheel}")
             ctx = settings.get_ctx(wheel.filename)
             package = SourcePackage(ctx, wheel, args.output, extras=wheels)
             package.create()
@@ -183,8 +184,8 @@ def build(argv):
             # source package already built, skipping build
             src_packages.remove(path)
 
-    logger.task("Building %s source packages...", len(src_packages))
-    tools.build_packages(src_packages, args.threads)
+    logger.task(f"Building {len(src_packages)} source packages...")
+    build_packages(src_packages, args.threads)
 
 
 def main():
@@ -207,10 +208,9 @@ def main():
         debianize(args)
 
     logger.summary(
-        "\nWarnings: %s. Errors: %s. Elapsed: %ss.",
-        logging.get_warning_counter(),
-        logging.get_error_counter(),
-        round(time.time() - start_time, 3),
+        f"\nWarnings: {logging.get_warning_counter()}. "
+        f"Errors: {logging.get_error_counter()}. "
+        f"Elapsed: {round(time.time() - start_time, 3)}s."
     )
 
     # the return code is the number of errors

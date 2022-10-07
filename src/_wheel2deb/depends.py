@@ -2,8 +2,8 @@ import re
 
 from packaging.version import parse
 
-from .apt import search_packages
-from .logger import logging
+from _wheel2deb.apt import search_packages
+from _wheel2deb.logger import logging
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +96,7 @@ def search_python_deps(ctx, wheel, extras=None):
     # filter out ignored requirements
     def is_required(r):
         if r.name in ctx.ignore_requirements:
-            logger.warning("ignoring requirement %s", str(r))
+            logger.warning(f"ignoring requirement {str(r)}")
             return False
         else:
             return True
@@ -124,9 +124,9 @@ def search_python_deps(ctx, wheel, extras=None):
 
         def check(x):
             if req.specifier.contains(x.version, prereleases=True):
-                logger.info("%s satisfies requirement %s", x, req)
+                logger.info(f"{x} satisfies requirement {req}")
             else:
-                logger.warning("%s does not satisfy requirement %s", x, req)
+                logger.warning(f"{x} does not satisfy requirement {req}")
             return ctx.ignore_upstream_versions or req.specifier.contains(
                 x.version, prereleases=True
             )
@@ -138,11 +138,11 @@ def search_python_deps(ctx, wheel, extras=None):
                     version = candidate.version
 
         if not version:
-            logger.error("could not find a candidate for requirement %s", req)
+            logger.error(f"could not find a candidate for requirement {req}")
             missing_deps.append(str(req))
 
         if req.name in ctx.ignore_specifiers:
-            logger.warning("ignoring specifiers for dependency %s", req.name)
+            logger.warning(f"ignoring specifiers for dependency {req.name}")
             debian_deps.append(pdep)
         elif not ctx.ignore_upstream_versions and len(req.specifier):
             for specifier in req.specifier:
@@ -166,17 +166,13 @@ def get_dependency_string(package_name, operator, version):
             parsed = parse(v)
             if len(parsed.release) == 1:
                 # For versions of the form "x" or "x.*". This will return "{x+1}.0"
-                return "%s (<< %s)" % (package_name, parsed.release[0] + 1)
+                return f"{package_name} (<< {parsed.release[0] + 1})"
             elif len(parsed.release) > 1:
                 # For version of the form "x.y" or "x.y.z". This will return "x.{y+1}"
-                return "%s (<< %s.%s)" % (
-                    package_name,
-                    parsed.release[0],
-                    parsed.release[1] + 1,
-                )
+                return f"{package_name} (<< {parsed.release[0]}.{parsed.release[1] + 1})"
         if operator == "<=":
             v += "-+"
-        return "%s (%s %s)" % (package_name, _translate_op(operator), v)
+        return f"{package_name} ({_translate_op(operator)} {v})"
 
     return None
 

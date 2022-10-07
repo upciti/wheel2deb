@@ -11,8 +11,8 @@ from packaging.requirements import Requirement
 from pkginfo import Distribution
 from wheel.wheelfile import WheelFile
 
-from .logger import logging
-from .pyvers import Version, VersionRange
+from _wheel2deb.logger import logging
+from _wheel2deb.pyvers import Version, VersionRange
 
 logger = logging.getLogger(__name__)
 
@@ -43,17 +43,17 @@ class Record:
         record = Record()
         for file in files:
             if re.search(cls.LICENSE_RE, file):
-                logger.debug("found license: %s", file)
+                logger.debug(f"found license: {file}")
                 record.licenses.append(file)
                 continue
 
             if ".data/scripts/" in file:
-                logger.debug("found script: %s", file)
+                logger.debug(f"found script: {file}")
                 record.scripts.append(file)
                 continue
 
             if re.findall(cls.SHLIBS_RE, os.path.basename(file)):
-                logger.debug("found shared lib: %s", file)
+                logger.debug(f"found shared lib: {file}")
                 record.libs.append(file)
 
             if file:
@@ -84,10 +84,10 @@ class Wheel:
         )
 
         if not filepath.exists():
-            raise ValueError("No such file: %s" % filepath)
+            raise ValueError(f"No such file: {filepath}")
 
         if not self.filename.endswith(".whl"):
-            raise ValueError("Not a known wheel archive format: %s" % filepath)
+            raise ValueError(f"Not a known wheel archive format: {filepath}")
 
         # parse wheel name
         # https://www.python.org/dev/peps/pep-0425
@@ -171,7 +171,7 @@ class Wheel:
             return
 
         with WheelFile(str(self.filepath)) as wf:
-            logger.debug("unpacking wheel to: %s..." % self.extract_path)
+            logger.debug(f"unpacking wheel to: {self.extract_path}...")
             wf.extractall(str(self.extract_path))
 
     def __repr__(self):

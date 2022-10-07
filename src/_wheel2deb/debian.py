@@ -9,11 +9,11 @@ from dirsync import sync
 from setuptools.command.install_scripts import install_scripts
 from setuptools.dist import Distribution
 
-from .depends import normalize_package_version, search_python_deps, suggest_name
-from .logger import logging
-from .templates import environment
-from .tools import shell
-from .version import __version__
+from _wheel2deb.depends import normalize_package_version, search_python_deps, suggest_name
+from _wheel2deb.logger import logging
+from _wheel2deb.templates import environment
+from _wheel2deb.utils import shell
+from _wheel2deb.version import __version__
 
 logger = logging.getLogger(__name__)
 dirsync_logger = logging.getLogger("dirsync")
@@ -271,7 +271,7 @@ class SourcePackage:
                 + ["-l" + str(self.src / x) for x in self.wheel.record.lib_dirs]
                 + [str(self.src / x) for x in self.wheel.record.libs]
             )
-            output = shell(args, cwd=self.root)[0]
+            output, _ = shell(args, cwd=self.root)
             missing_libs.update(DPKG_SHLIBS_RE.findall(output, re.MULTILINE))
 
         if missing_libs:
@@ -283,7 +283,7 @@ class SourcePackage:
 
             # search packages providing those libs
             for lib in missing_libs:
-                output = shell(["apt-file", "search", lib, "-a", self.arch])[0]
+                output, _ = shell(["apt-file", "search", lib, "-a", self.arch])
                 packages = set(APT_FILE_RE.findall(output))
 
                 # remove dbg packages
