@@ -1,119 +1,68 @@
-import hashlib
 import os
-import sys
-from tempfile import TemporaryDirectory
-from unittest.mock import patch
 
 import pytest
+from typer.testing import CliRunner
 
-from wheel2deb import cli
-from wheel2deb.cli import parse_args
-from wheel2deb.context import load
+from wheel2deb.cli import app
 
-
-def digests(fname):
-    sha = hashlib.sha256()
-    with open(str(fname), "rb") as f:
-        while True:
-            block = f.read(1 << 16)
-            if not block:
-                break
-            sha.update(block)
-
-    return sha.hexdigest()
+valid_configuration = """\
+.+:
+  map:
+    attrs: attr
+  depends:
+    - python-foobar
+"""
 
 
-def test_parse_args():
-    args = ["--map", "attrs=attr", "--python-version", "1"]
-    parser = parse_args(args)
-    assert parser.map["attrs"] == "attr"
-    assert parser.python_version == "1"
-
-
-def test_load_config_file(tmp_path):
-    config_path = tmp_path / "foo.yml"
-    with open(str(config_path), "w") as f:
-        f.write(
-            ".+:\n"
-            '  version_template: "1.0.0"\n'
-            "  map:\n"
-            "    attrs: attr\n"
-            "  depends:\n"
-            "    - python-foobar\n"
+@pytest.fixture
+def call_wheel2deb(tmp_path):
+    def _invoke(*args, conf: str | None = None):
+        runner = CliRunner()
+        configuration_path = tmp_path / "wheel2deb.yml"
+        if conf is not None:
+            configuration_path.write_text(conf)
+        os.environ.update(
+            {
+                "WHEEL2DEB_VERBOSE": "1",
+                "WHEEL2DEB_OUTPUT_DIR": str(tmp_path / "output"),
+                "WHEEL2DEB_CONFIG": str(configuration_path),
+            }
         )
+        args = [str(arg) for arg in args]
+        return runner.invoke(app, args, catch_exceptions=False)
 
-    args = ["--config", str(config_path)]
-    parser = parse_args(args)
-    settings = load(parser.config)
-
-    assert settings.get_ctx("foo").map["attrs"] == "attr"
-    assert settings.get_ctx("foo").depends[0] == "python-foobar"
+    return _invoke
 
 
-@patch("sys.argv", ["wheel2deb", "-h"])
-def test_help():
-    """Test wheel2deb -h"""
-
-    with TemporaryDirectory() as directory:
-        os.chdir(directory)
-        with pytest.raises(SystemExit) as e:
-            cli.main()
-            assert e.code == 0
-
-
-def test_conversion(tmp_path, wheel_path):
-    """Test the conversion of a dummy wheel foobar"""
-
-    os.chdir(str(tmp_path))
-
-    # convert wheel to debian source package
-    with patch.object(sys, "argv", ["", "-x", str(wheel_path.parent)]):
-        with patch.object(cli.sys, "exit") as mock_exit:
-            cli.main()
-            assert mock_exit.call_args[0][0] == 0
-
-    unpack_path = tmp_path / "output/python3-foobar_0.1.0-1~w2d0_all"
-    assert unpack_path.exists()
-
-    # build source package
-    with patch.object(sys, "argv", ["", "build"]):
-        with patch.object(cli.sys, "exit") as mock_exit:
-            cli.main()
-            assert mock_exit.call_args[0][0] == 0
-
-    # output dir should contain a .deb
-    package_list = list((tmp_path / "output").glob("*.deb"))
-    assert package_list
-
-    package_path = package_list[0]
-    assert package_path.name.startswith("python3-foobar_0.1.0-1")
-
-    package_hash = digests(package_list[0])
-
-    # check that the entrypoint will be installed in /usr/bin
-    entrypoint = unpack_path / "debian/python3-foobar/usr/bin/entrypoint"
+def test_convert(tmp_path, wheel_path, call_wheel2deb):
+    result = call_wheel2deb("convert", "-x", wheel_path.parent, conf=valid_configuration)
+    assert result.exit_code == 0
+    source_package_path = tmp_path / "output/python3-foobar_0.1.0-1~w2d0_all"
+    assert source_package_path.exists()
+    entrypoint = source_package_path / "entrypoints/entrypoint"
     assert entrypoint.exists()
-
-    # check shebang
-    with open(str(entrypoint), "r") as f:
-        shebang = f.readline()
-        assert shebang.startswith("#!/usr/bin")
-
-    # idempotence: delete package, rerun build command
-    # and check  that both packages have the same hash
-    package_list[0].unlink()
-    with patch.object(sys, "argv", ["", "build"]):
-        with patch.object(cli.sys, "exit") as mock_exit:
-            cli.main()
-            assert mock_exit.call_args[0][0] == 0
-    assert digests(package_path) == package_hash
+    shebang = list(entrypoint.read_text().splitlines())[0]
+    assert shebang == "#!/usr/bin/python3"
 
 
-def test_build(tmp_path):
-    os.chdir(str(tmp_path))
-    os.mkdir("output")
+def test_build(tmp_path, wheel_path, sha256sum, call_wheel2deb):
+    call_wheel2deb("convert", "-x", wheel_path.parent, conf=valid_configuration)
+    result = call_wheel2deb("build")
+    assert result.exit_code == 0
+    assert (tmp_path / "output/python3-foobar_0.1.0-1~w2d0_all.deb").is_file()
 
-    with patch.object(sys, "argv", ["", "build", "-f", "-j1"]):
-        with pytest.raises(SystemExit) as e:
-            cli.main()
-            assert e.code == 0
+
+def test_build_idempotence(tmp_path, wheel_path, sha256sum, call_wheel2deb):
+    call_wheel2deb("convert", "-x", wheel_path.parent, conf=valid_configuration)
+    call_wheel2deb("build")
+    package_path = tmp_path / "output/python3-foobar_0.1.0-1~w2d0_all.deb"
+    checksum = sha256sum(package_path)
+    package_path.unlink()
+    call_wheel2deb("build")
+    assert checksum == sha256sum(package_path)
+
+
+def test_default(tmp_path, wheel_path, sha256sum, call_wheel2deb):
+    result = call_wheel2deb("-x", wheel_path.parent, conf=valid_configuration)
+    assert result.exit_code == 0
+    assert (tmp_path / "output/python3-foobar_0.1.0-1~w2d0_all.deb").is_file()

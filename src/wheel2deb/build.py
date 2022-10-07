@@ -3,7 +3,7 @@ from pathlib import Path
 from threading import Event, Thread
 from time import sleep
 
-from wheel2deb.logger import logging
+from wheel2deb import logger as logging
 from wheel2deb.utils import shell
 
 logger = logging.getLogger(__name__)
@@ -48,12 +48,14 @@ def build_package(cwd: Path) -> int:
     return returncode
 
 
-def build_packages(paths, threads: int = 4) -> None:
+def build_packages(paths, threads: int, force_build: bool) -> None:
     """
     Run several instances of dpkg-buildpackage in parallel.
     :param paths: List of paths where dpkg-buildpackage will be called
     :param threads: Number of threads to run in parallel
     """
+
+    logger.task(f"Building {len(paths)} source packages...")
 
     paths = paths.copy()
     workers = []
@@ -63,8 +65,9 @@ def build_packages(paths, threads: int = 4) -> None:
         workers.append(dict(done=event, path=None))
 
     def build(done, path):
-        logger.info(f"building {path}")
-        build_package(path)
+        if force_build is True or Path(str(path) + ".deb").is_file() is False:
+            logger.info(f"building {path}")
+            build_package(path)
         done.set()
 
     while False in [w["done"].is_set() for w in workers] or paths:
@@ -74,3 +77,27 @@ def build_packages(paths, threads: int = 4) -> None:
                 w["path"] = paths.pop()
                 Thread(target=build, kwargs=w).start()
         sleep(1)
+
+
+def build_all_packages(output_directory: Path, workers: int, force_build: bool) -> None:
+    """
+    Build debian source packages in parallel.
+    :param output_directory: path where to search for source packages
+    :param workers: Number of threads to run in parallel
+    :param force_build: Build packages even if .deb already exists
+    """
+
+    if output_directory.exists() is False:
+        logger.error(f"Directory {output_directory} does not exist")
+        return
+
+    if output_directory.is_dir() is False:
+        logger.error(f"{output_directory} is not a directory")
+        return
+
+    paths = []
+    for output_directory in output_directory.iterdir():
+        if output_directory.is_dir() and (output_directory / "debian/control").is_file():
+            paths.append(output_directory)
+
+    build_packages(paths, workers, force_build)

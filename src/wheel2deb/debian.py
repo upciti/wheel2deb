@@ -4,13 +4,16 @@ import re
 import shutil
 import tempfile
 from pathlib import Path
+from typing import List
 
 from dirsync import sync
 from setuptools.command.install_scripts import install_scripts
 from setuptools.dist import Distribution
 
+from wheel2deb import logger as logging
+from wheel2deb.context import Settings
 from wheel2deb.depends import normalize_package_version, search_python_deps, suggest_name
-from wheel2deb.logger import logging
+from wheel2deb.pydist import Wheel
 from wheel2deb.templates import environment
 from wheel2deb.utils import shell
 from wheel2deb.version import __version__
@@ -18,6 +21,8 @@ from wheel2deb.version import __version__
 logger = logging.getLogger(__name__)
 dirsync_logger = logging.getLogger("dirsync")
 dirsync_logger.setLevel(logging.ERROR)
+
+EXTRACT_PATH = Path("/tmp/wheel2deb")
 
 COPYRIGHT_RE = re.compile(
     r"(?:copyrights?|\s*©|\s*\(c\))[\s:|,]*" r"((?=.*[a-z])\d{2,4}(?:(?!all\srights).)+)",
@@ -347,3 +352,49 @@ class SourcePackage:
         finally:
             os.chdir(oldcwd)
             shutil.rmtree(tempdir, ignore_errors=True)
+
+
+def convert_wheels(
+    settings: Settings,
+    output_directory: Path,
+    wheel_paths: List[Path],
+) -> List[SourcePackage]:
+    if output_directory.exists() is False:
+        output_directory.mkdir(exist_ok=True)
+
+    if output_directory.is_dir() is False:
+        logger.error(f"{output_directory} is not a directory")
+        return
+
+    if wheel_paths:
+        logger.task("Unpacking %s wheels", len(wheel_paths))
+
+    wheels = []
+    for file in wheel_paths:
+        wheel = Wheel(file, EXTRACT_PATH / file.name[:-4])
+        ctx = settings.get_ctx(wheel.filename)
+
+        if not wheel.cpython_supported:
+            # ignore wheels that are not cpython compatible
+            logger.warning(f"{wheel.filename} does not support cpython")
+            continue
+
+        if not wheel.version_supported(ctx.python_version):
+            # ignore wheels that are not compatible specified python version
+            logger.warning(
+                f"{wheel.filename} does not support python {ctx.python_version}"
+            )
+            continue
+
+        logger.info("%s", wheel.filename)
+        wheels.append(wheel)
+
+    packages = []
+    for wheel in wheels:
+        logger.task(f"Converting wheel {wheel}")
+        ctx = settings.get_ctx(wheel.filename)
+        package = SourcePackage(ctx, wheel, output_directory, extras=wheels)
+        package.create()
+        packages.append(package)
+
+    return packages

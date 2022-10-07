@@ -21,7 +21,7 @@
 
 import logging
 import sys
-from logging import ERROR, WARNING
+from logging import DEBUG, ERROR, INFO, WARNING
 
 import colorama
 
@@ -237,3 +237,10 @@ def cyan_text(msg):
 
 def color_text(color, msg):
     return "{}{}{}".format(color, msg, colorama.Style.RESET_ALL)
+
+
+def enable_debug(debug: bool):
+    if debug:
+        logging.getLogger().setLevel(DEBUG)
+    else:
+        logging.getLogger().setLevel(INFO)

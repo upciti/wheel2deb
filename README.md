@@ -19,10 +19,8 @@ The following shows how to convert numpy and pytest, along with their dependenci
 ```sh
 # Download (and build if needed) pytest, numpy and their requirements
 pip3 wheel pytest numpy
-# Convert all wheels to debian source packages
-wheel2deb --map attrs=attr
-# Call dpkg-buildpackages for each source package
-wheel2deb build
+# Convert all wheels to debian source packages, build them with dpkg-buildpackage
+wheel2deb
 ls -l output/*.deb
 # Install generated packages
 dpkg -i output/*.deb
@@ -95,23 +93,9 @@ pipx install wheel2deb
 - handle entrypoints and scripts (those will be installed in /usr/bin with a proper shebang)
 - try to locate licence files and to generate a debian/copyright file
 
-## Options
+## Usage
 
-Use `wheel2deb --help` and `wheel2deb build --help` to check all supported options
-
-| Option                    | Description                                                                                                                                                                                        |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| -v                        | Enable debug logs.                                                                                                                                                                                 |
-| -x                        | List of search paths where to look for python wheels. Defaults to current directory. Not recursive.                                                                                                |
-| -o                        | Output directory where debian source packages will be produced. Defaults to ./output                                                                                                               |
-| -i                        | List of wheel names to convert. By default all found wheels are included.                                                                                                                          |
-| --python-version          | cpython version on the target debian distribution. Defaults to platform version (example: 3.4).                                                                                                    |
-| --map                     | list of string pairs to explicitely map python dist names to debian package names. For instance: "--map foo:bar attrs:attr" will tell wheel2deb to map foo to python-bar and attrs to python-attr. |
-| --depends                 | List of additional debian dependencies.                                                                                                                                                            |
-| --epoch                   | Debian package epoch. Defaults to 0.                                                                                                                                                               |
-| --revision                | Debian package revision. Defaults to 1.                                                                                                                                                            |
-| --ignore-entry-points     | Don't include the wheel entrypoints in the debian package.                                                                                                                                         |
-| --ignore-upstream-version | Ignore version specifiers from wheel requirements. For instance, if foo requires bar>=3.0.0, using this option will produce a debian package simply depending on bar instead of "bar (>= 3.0.0)".  |
+Use `wheel2deb convert --help` and `wheel2deb build --help` to check all supported options.
 
 ## Development
 

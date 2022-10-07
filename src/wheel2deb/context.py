@@ -1,11 +1,16 @@
 import platform
 import re
+import sys
+from pathlib import Path
 
 import attr
 import yaml
 
+from wheel2deb import logger as logging
 from wheel2deb.pyvers import Version
 from wheel2deb.version import __version__
+
+logger = logging.getLogger(__name__)
 
 
 @attr.s
@@ -57,8 +62,27 @@ class Settings:
         return ctx
 
 
-def load(file=None):
-    with open(file, "r") as f:
+def load_configuration(configuration_path: Path | None) -> Settings:
+    default_configuration_path = Path("wheel2deb.yml")
 
-        config = yaml.safe_load(f)
-    return Settings(config)
+    if configuration_path is None and default_configuration_path.is_file():
+        configuration_path = default_configuration_path
+
+    if configuration_path is None:
+        return Settings()
+
+    if configuration_path.exists() is False:
+        logger.error(f"Configuration {configuration_path} does not exist")
+        sys.exit(1)
+
+    if configuration_path.is_file() is False:
+        logger.error(f"{configuration_path} is not a file")
+        sys.exit(1)
+
+    try:
+        configuration = yaml.safe_load(configuration_path.read_text())
+    except yaml.YAMLError as e:
+        logger.error(f"Invalid YAML in configuration file: {e}")
+        sys.exit(1)
+
+    return Settings(configuration)

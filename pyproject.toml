@@ -34,7 +34,7 @@ pyinstaller = { version = "5.4.1", optional = true }
 pyinstaller = ["pyinstaller"]
 
 [tool.poetry.scripts]
-wheel2deb = "wheel2deb:main"
+wheel2deb = "wheel2deb.cli:main"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
