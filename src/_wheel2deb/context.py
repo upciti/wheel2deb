@@ -2,6 +2,7 @@ import platform
 import re
 
 import attr
+import yaml
 
 from .pyvers import Version
 from .version import __version__
@@ -58,7 +59,6 @@ class Settings:
 
 def load(file=None):
     with open(file, "r") as f:
-        import yaml
 
         config = yaml.safe_load(f)
     return Settings(config)
