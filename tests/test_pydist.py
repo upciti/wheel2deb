@@ -1,5 +1,5 @@
-from _wheel2deb.pydist import Wheel
-from _wheel2deb.pyvers import Version
+from wheel2deb.pydist import Wheel
+from wheel2deb.pyvers import Version
 
 
 def test_parse_wheel(wheel_path):

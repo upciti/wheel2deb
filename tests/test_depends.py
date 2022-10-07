@@ -1,7 +1,7 @@
-from _wheel2deb.context import Context
-from _wheel2deb.depends import get_dependency_string, search_python_deps, suggest_name
-from _wheel2deb.pydist import Wheel
-from _wheel2deb.pyvers import Version
+from wheel2deb.context import Context
+from wheel2deb.depends import get_dependency_string, search_python_deps, suggest_name
+from wheel2deb.pydist import Wheel
+from wheel2deb.pyvers import Version
 
 
 def test_name_suggestion():

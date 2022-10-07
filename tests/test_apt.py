@@ -1,4 +1,4 @@
-from _wheel2deb.apt import Package
+from wheel2deb.apt import Package
 
 
 def test_package_name_parsing():

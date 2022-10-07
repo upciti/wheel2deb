@@ -6,9 +6,9 @@ from unittest.mock import patch
 
 import pytest
 
-import wheel2deb
-from _wheel2deb.context import load
-from wheel2deb import parse_args
+from wheel2deb import cli
+from wheel2deb.cli import parse_args
+from wheel2deb.context import load
 
 
 def digests(fname):
@@ -57,7 +57,7 @@ def test_help():
     with TemporaryDirectory() as directory:
         os.chdir(directory)
         with pytest.raises(SystemExit) as e:
-            wheel2deb.main()
+            cli.main()
             assert e.code == 0
 
 
@@ -68,8 +68,8 @@ def test_conversion(tmp_path, wheel_path):
 
     # convert wheel to debian source package
     with patch.object(sys, "argv", ["", "-x", str(wheel_path.parent)]):
-        with patch.object(wheel2deb.sys, "exit") as mock_exit:
-            wheel2deb.main()
+        with patch.object(cli.sys, "exit") as mock_exit:
+            cli.main()
             assert mock_exit.call_args[0][0] == 0
 
     unpack_path = tmp_path / "output/python3-foobar_0.1.0-1~w2d0_all"
@@ -77,8 +77,8 @@ def test_conversion(tmp_path, wheel_path):
 
     # build source package
     with patch.object(sys, "argv", ["", "build"]):
-        with patch.object(wheel2deb.sys, "exit") as mock_exit:
-            wheel2deb.main()
+        with patch.object(cli.sys, "exit") as mock_exit:
+            cli.main()
             assert mock_exit.call_args[0][0] == 0
 
     # output dir should contain a .deb
@@ -103,8 +103,8 @@ def test_conversion(tmp_path, wheel_path):
     # and check  that both packages have the same hash
     package_list[0].unlink()
     with patch.object(sys, "argv", ["", "build"]):
-        with patch.object(wheel2deb.sys, "exit") as mock_exit:
-            wheel2deb.main()
+        with patch.object(cli.sys, "exit") as mock_exit:
+            cli.main()
             assert mock_exit.call_args[0][0] == 0
     assert digests(package_path) == package_hash
 
@@ -115,5 +115,5 @@ def test_build(tmp_path):
 
     with patch.object(sys, "argv", ["", "build", "-f", "-j1"]):
         with pytest.raises(SystemExit) as e:
-            wheel2deb.main()
+            cli.main()
             assert e.code == 0

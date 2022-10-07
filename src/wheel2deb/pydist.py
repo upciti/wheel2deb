@@ -11,8 +11,8 @@ from packaging.requirements import Requirement
 from pkginfo import Distribution
 from wheel.wheelfile import WheelFile
 
-from _wheel2deb.logger import logging
-from _wheel2deb.pyvers import Version, VersionRange
+from wheel2deb.logger import logging
+from wheel2deb.pyvers import Version, VersionRange
 
 logger = logging.getLogger(__name__)
 

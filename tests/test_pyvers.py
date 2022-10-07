@@ -1,6 +1,6 @@
 import pytest
 
-from _wheel2deb.pyvers import Version, VersionRange
+from wheel2deb.pyvers import Version, VersionRange
 
 
 def test_python_version():
