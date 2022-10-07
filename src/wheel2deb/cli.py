@@ -6,11 +6,11 @@ from functools import partial
 from logging import DEBUG, INFO
 from pathlib import Path
 
-from _wheel2deb import logger as logging
-from _wheel2deb.build import build_packages
-from _wheel2deb.context import Settings, load
-from _wheel2deb.debian import SourcePackage
-from _wheel2deb.pydist import Wheel
+from wheel2deb import logger as logging
+from wheel2deb.build import build_packages
+from wheel2deb.context import Settings, load
+from wheel2deb.debian import SourcePackage
+from wheel2deb.pydist import Wheel
 
 logger = logging.getLogger(__name__)
 
@@ -215,7 +215,3 @@ def main():
 
     # the return code is the number of errors
     sys.exit(logging.get_error_counter())
-
-
-if __name__ == "__main__":
-    main()

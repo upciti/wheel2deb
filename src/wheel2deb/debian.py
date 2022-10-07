@@ -9,11 +9,11 @@ from dirsync import sync
 from setuptools.command.install_scripts import install_scripts
 from setuptools.dist import Distribution
 
-from _wheel2deb.depends import normalize_package_version, search_python_deps, suggest_name
-from _wheel2deb.logger import logging
-from _wheel2deb.templates import environment
-from _wheel2deb.utils import shell
-from _wheel2deb.version import __version__
+from wheel2deb.depends import normalize_package_version, search_python_deps, suggest_name
+from wheel2deb.logger import logging
+from wheel2deb.templates import environment
+from wheel2deb.utils import shell
+from wheel2deb.version import __version__
 
 logger = logging.getLogger(__name__)
 dirsync_logger = logging.getLogger("dirsync")

@@ -4,8 +4,8 @@ import re
 import attr
 import yaml
 
-from _wheel2deb.pyvers import Version
-from _wheel2deb.version import __version__
+from wheel2deb.pyvers import Version
+from wheel2deb.version import __version__
 
 
 @attr.s

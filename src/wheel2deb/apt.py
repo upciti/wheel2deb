@@ -4,8 +4,8 @@ from typing import Optional
 
 import attr
 
-from _wheel2deb.logger import logging
-from _wheel2deb.utils import shell
+from wheel2deb.logger import logging
+from wheel2deb.utils import shell
 
 # https://www.debian.org/doc/debian-policy/ch-controlfields.html#version
 PACKAGE_VER_RE = re.compile(

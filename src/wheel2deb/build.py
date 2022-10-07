@@ -3,8 +3,8 @@ from pathlib import Path
 from threading import Event, Thread
 from time import sleep
 
-from _wheel2deb.logger import logging
-from _wheel2deb.utils import shell
+from wheel2deb.logger import logging
+from wheel2deb.utils import shell
 
 logger = logging.getLogger(__name__)
 
