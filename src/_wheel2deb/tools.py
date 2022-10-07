@@ -1,3 +1,9 @@
+import re
+import subprocess
+from pathlib import Path
+from threading import Event, Thread
+from time import sleep
+
 from .logger import logging
 
 logger = logging.getLogger(__name__)
@@ -9,7 +15,6 @@ def shell(args, **kwargs):
     :param args: Command and parameters in a list
     :return: A tuple with (command output, return code)
     """
-    import subprocess
 
     output, returncode = "", 0
     logger.debug("running %s", " ".join(args))
@@ -46,8 +51,6 @@ def build_packages(paths, threads=4):
     :param paths: List of paths where dpkg-buildpackage will be called
     :param threads: Number of threads to run in parallel
     """
-    from threading import Event, Thread
-    from time import sleep
 
     paths = paths.copy()
     workers = []
@@ -76,8 +79,6 @@ def parse_debian_control(cwd):
     :param cwd: Path to debian source package
     :return: Dict object with fields as keys
     """
-    import re
-    from pathlib import Path
 
     if isinstance(cwd, str):
         cwd = Path(cwd)
@@ -97,16 +98,3 @@ def parse_debian_control(cwd):
         control[k] = m
 
     return control
-
-
-def patch_pathlib():
-    """Monkey patch pathlib.Path if Path.read_text does not exist."""
-
-    def path_read_text(self):
-        with self.open("r") as f:
-            return f.read()
-
-    from pathlib import Path
-
-    if not hasattr(Path, "read_text"):
-        Path.read_text = path_read_text

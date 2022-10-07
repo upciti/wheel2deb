@@ -14,8 +14,6 @@ from _wheel2deb.pydist import Wheel
 
 logger = logging.getLogger(__name__)
 
-tools.patch_pathlib()
-
 EXTRACT_PATH = Path("/tmp/wheel2deb")
 
 

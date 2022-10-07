@@ -1,3 +1,4 @@
+import configparser
 import os
 import re
 import shutil
@@ -5,6 +6,8 @@ import tempfile
 from pathlib import Path
 
 from dirsync import sync
+from setuptools.command.install_scripts import install_scripts
+from setuptools.dist import Distribution
 
 from .depends import normalize_package_version, search_python_deps, suggest_name
 from .logger import logging
@@ -311,10 +314,6 @@ class SourcePackage:
         self.depends = list(set(self.depends) | shlibdeps)
 
     def run_install_scripts(self):
-        import configparser
-
-        from setuptools.command.install_scripts import install_scripts
-        from setuptools.dist import Distribution
 
         config = configparser.ConfigParser()
         config.read_string(self.wheel.entrypoints)
