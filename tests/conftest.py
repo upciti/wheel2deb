@@ -1,3 +1,4 @@
+import hashlib
 import os
 import sys
 from pathlib import Path
@@ -5,6 +6,21 @@ from tempfile import mkdtemp
 from unittest.mock import patch
 
 import pytest
+
+
+@pytest.fixture
+def sha256sum():
+    def _sha256sum(file_path: Path) -> str:
+        sha = hashlib.sha256()
+        with file_path.open("rb") as f:
+            while True:
+                block = f.read(1 << 16)
+                if not block:
+                    break
+                sha.update(block)
+        return sha.hexdigest()
+
+    return _sha256sum
 
 
 @pytest.fixture(scope="module")
@@ -34,5 +50,4 @@ def wheel_path():
             version="0.1.0",
         )
 
-    path = list(tmp_path.glob("dist/*.whl"))[0]
-    return path
+    return list(tmp_path.glob("dist/*.whl"))[0]

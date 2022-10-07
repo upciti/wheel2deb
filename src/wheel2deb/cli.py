@@ -1,217 +1,207 @@
-import argparse
-import os
 import sys
 import time
-from functools import partial
-from logging import DEBUG, INFO
+from contextlib import contextmanager
 from pathlib import Path
+from typing import Any, List, Optional, Tuple
+
+import click
+import typer
+from typer.core import TyperGroup
 
 from wheel2deb import logger as logging
-from wheel2deb.build import build_packages
-from wheel2deb.context import Settings, load
-from wheel2deb.debian import SourcePackage
-from wheel2deb.pydist import Wheel
+from wheel2deb.build import build_all_packages, build_packages
+from wheel2deb.context import load_configuration
+from wheel2deb.debian import convert_wheels
+from wheel2deb.logger import enable_debug
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_CONFIG_NAME = "wheel2deb.yml"
-EXTRACT_PATH = Path("/tmp/wheel2deb")
 
-
-def parse_args(argv):
-    p = argparse.ArgumentParser(description="Python Wheel to Debian package converter")
-
-    p.add_argument("-v", "--verbose", action="store_true", help="Enable debug logs")
-    p.add_argument("-i", "--include", nargs="+", help="List of wheel names to convert")
-    p.add_argument(
-        "-e", "--exclude", nargs="+", help="List of wheel names not to convert"
-    )
-    p.add_argument(
-        "-o",
-        "--output",
-        default="output",
-        help="Output directory (defaults to ./output)",
-    )
-    p.add_argument(
-        "-c",
-        "--config",
-        help="Path to configuration file " "(defaults to ./wheel2deb.yml)",
-    )
-    p.add_argument(
-        "--python-version",
-        help="CPython version on the target debian distribution "
-        "(defaults to the platform version)",
-    )
-    p.add_argument(
-        "--arch",
-        help="Architecture of the target debian distribution"
-        "(only needed if you have repos with a different "
-        "arch than your host in your sources.list)",
-    )
-    p.add_argument("-x", "--search-paths", default=".", nargs="+", help="")
-    p.add_argument("--map", nargs="+", help="")
-    p.add_argument("--depends", nargs="+", help="")
-    p.add_argument("--epoch", help="Debian package epoch (defaults to 0)")
-    p.add_argument("--revision", help="Debian package revision (defaults to 1)")
-    p.add_argument(
-        "--ignore-entry-points",
-        action="store_true",
-        help="Don't include entry points in debian package",
-    )
-    p.add_argument(
-        "--ignore-upstream-versions",
-        action="store_true",
-        help="Ignore version specifiers from wheel requirements",
-    )
-
-    args = p.parse_args(argv)
-
-    if args.map:
-        split = partial(str.split, sep="=", maxsplit=2)
-        args.map = {x: y for x, y in list(map(split, args.map))}
-
-    args.output = Path(args.output)
-
-    return args
-
-
-def debianize(args):
+class DefaultCommandGroup(TyperGroup):
     """
-    Convert wheels found in args.search_paths in debian source packages
+    Make it so that calling wheel2deb without a subcommand
+    is equivalent to calling the default subcommand.
     """
 
-    # load config file
-    if args.config:
-        settings = load(args.config)
-    elif Path(DEFAULT_CONFIG_NAME).is_file():
-        settings = load(DEFAULT_CONFIG_NAME)
-    else:
-        settings = Settings()
+    def __init__(self, *args: Any, **kwargs: Any):
+        self.default_command = "default"
+        self.ignore_unknown_options = True
+        super().__init__(*args, **kwargs)
 
-    # config file takes precedence over command line arguments
-    settings.default_ctx.update(vars(args))
+    def parse_args(self, ctx: click.Context, args: List[str]) -> List[str]:
+        if not args:
+            args.insert(0, self.default_command)
+        return super().parse_args(ctx, args)
 
-    if not args.output.exists():
-        args.output.mkdir()
+    def get_command(self, ctx: click.Context, cmd_name: str) -> click.Command | None:
+        if cmd_name.startswith("-") and cmd_name not in self.commands:
+            cmd_name = self.default_command
+            ctx.default_command = True  # type: ignore
+        return super().get_command(ctx, cmd_name)
 
-    # list all python wheels in search paths
-    files = []
-    for path in [Path(path) for path in args.search_paths]:
-        files.extend(path.glob("*.whl"))
-    files = sorted(files, key=lambda x: x.name)
-
-    filenames = list(map(lambda x: x.name, files))
-    if not args.include:
-        args.include = filenames
-
-    # remove excluded wheels
-    if args.exclude:
-        args.include = list(filter(lambda x: x not in args.exclude, args.include))
-
-    # fail if some input wheel was not found in search paths
-    missing = list(filter(lambda x: x not in filenames, args.include))
-    if missing:
-        logger.critical("File(s) not found: %s", ", ".join(missing))
-        exit(1)
-
-    logger.task("Unpacking %s wheels", len(files))
-
-    wheels = []
-    for file in files:
-        wheel = Wheel(file, EXTRACT_PATH / file.name[:-4])
-        ctx = settings.get_ctx(wheel.filename)
-
-        if not wheel.cpython_supported:
-            # ignore wheels that are not cpython compatible
-            logger.warning(f"{wheel.filename} does not support cpython")
-            continue
-
-        if not wheel.version_supported(ctx.python_version):
-            # ignore wheels that are not compatible specified python version
-            logger.warning(
-                f"{wheel.filename} does not support python {ctx.python_version}"
-            )
-            continue
-
-        logger.info("%s", wheel.filename)
-        wheels.append(wheel)
-
-    packages = []
-    for wheel in wheels:
-        if wheel.filename in args.include:
-            logger.task(f"Debianizing wheel {wheel}")
-            ctx = settings.get_ctx(wheel.filename)
-            package = SourcePackage(ctx, wheel, args.output, extras=wheels)
-            package.create()
-            packages.append(package)
+    def resolve_command(
+        self, ctx: click.Context, args: List[str]
+    ) -> Tuple[str | None, click.Command | None, List[str]]:
+        cmd_name, cmd, args = super().resolve_command(ctx, args)
+        if hasattr(ctx, "default_command") and cmd_name:
+            args.insert(0, cmd_name)
+        return cmd_name, cmd, args
 
 
-def build(argv):
-    """
-    Install build dependencies and build all debian source packages
-    """
+option_verbose: bool = typer.Option(
+    False,
+    "--verbose",
+    "-v",
+    envvar="WHEEL2DEB_VERBOSE",
+    help="Enable more logs.",
+    callback=lambda v: enable_debug(v),
+)
 
-    p = argparse.ArgumentParser(description="Build debian source packages")
+option_configuration: Optional[Path] = typer.Option(
+    None,
+    "--config",
+    "-c",
+    envvar="WHEEL2DEB_CONFIG",
+    help="Path to configuration file.",
+)
 
-    p.add_argument("-v", "--verbose", action="store_true", help="Enable debug logs")
-    p.add_argument(
-        "-p",
-        "--path",
-        default="output",
-        help="Path to search for source packages " '(defaults to "./output")',
-    )
-    p.add_argument(
-        "-f",
-        "--force",
-        action="store_true",
-        help="Build source package even if .deb already exists",
-    )
-    p.add_argument("-j", "--threads", default=4, type=int, help="Worker threads count")
+option_output_directory: Path = typer.Option(
+    "output",
+    "--output-dir",
+    "-o",
+    envvar="WHEEL2DEB_OUTPUT_DIR",
+    help="Directory where debian source packages are generated and built.",
+)
 
-    args = p.parse_args(argv)
+option_target_architecture: str = typer.Option(
+    None,
+    "--arch",
+    envvar="WHEEL2DEB_TARGET_ARCH",
+    help="Architecture of the target debian distribution"
+    "(only needed if you have repos with a different "
+    "arch than your host in your sources.list)",
+)
 
-    packages = list(Path(args.path).glob("*.deb"))
+option_include_wheels: Optional[List[str]] = typer.Option(
+    None,
+    "--include",
+    "-i",
+    envvar="WHEEL2DEB_INCLUDE_WHEELS",
+    help="Only wheels with matching names will be converted",
+)
 
-    # list source packages in user supplied path
-    src_packages = []
-    for d in os.listdir(str(args.path)):
-        path = Path(args.path) / d
-        if path.is_dir() and (path / "debian/control").is_file():
-            src_packages.append(path)
+option_exclude_wheels: Optional[List[str]] = typer.Option(
+    None,
+    "--exclude",
+    "-e",
+    envvar="WHEEL2DEB_EXCLUDE_WHEELS",
+    help="Wheels with matching names will not be converted",
+)
 
-    for path in src_packages.copy():
-        if not args.force and True in [p.name[:-4] == path.name for p in packages]:
-            # source package already built, skipping build
-            src_packages.remove(path)
+option_search_paths: List[Path] = typer.Option(
+    [Path(".")],
+    "--search-path",
+    "-x",
+    envvar="WHEEL2DEB_SEARCH_PATHS",
+    help="Only blueprints with matching names will be taken into account",
+)
 
-    logger.task(f"Building {len(src_packages)} source packages...")
-    build_packages(src_packages, args.threads)
+
+option_workers_count: int = typer.Option(
+    4,
+    "--workers",
+    "-w",
+    envvar="WHEEL2DEB_WORKERS_COUNT",
+    help="Max number of source packages to build in parallel",
+)
+
+option_force_build: bool = typer.Option(
+    False, "--force", help="Build source package even if .deb already exists"
+)
+
+app = typer.Typer(cls=DefaultCommandGroup)
 
 
-def main():
-    start_time = time.time()
-
-    p = argparse.ArgumentParser(add_help=False)
-    p.add_argument("-v", "--verbose", action="store_true")
-
-    args, argv = p.parse_known_args()
-
-    if args.verbose:
-        logging.getLogger().setLevel(DEBUG)
-    else:
-        logging.getLogger().setLevel(INFO)
-
-    if argv and argv[0] == "build":
-        build(argv[1:])
-    else:
-        args = parse_args(argv)
-        debianize(args)
-
+@contextmanager
+def print_summary_and_exit():
+    start_time = time.monotonic()
+    yield
     logger.summary(
         f"\nWarnings: {logging.get_warning_counter()}. "
         f"Errors: {logging.get_error_counter()}. "
-        f"Elapsed: {round(time.time() - start_time, 3)}s."
+        f"Elapsed: {round(time.monotonic() - start_time, 3)}s."
     )
-
     # the return code is the number of errors
     sys.exit(logging.get_error_counter())
+
+
+def filter_wheels(
+    search_paths: List[Path],
+    include_wheels: List[str] | None,
+    exclude_wheels: List[str] | None,
+) -> List[Path]:
+    # list all python wheels in search paths
+    files = []
+    for path in [Path(path) for path in search_paths]:
+        files.extend(path.glob("*.whl"))
+    files = sorted(files, key=lambda x: x.name)
+
+    filenames = [f.name for f in files]
+    if not include_wheels:
+        include_wheels = filenames
+
+    # remove excluded wheels
+    if exclude_wheels:
+        include_wheels = list(filter(lambda x: x not in exclude_wheels, include_wheels))
+
+    return [file for file in files if file.name in include_wheels]
+
+
+@app.command(help="Generate and build source packages.")
+def default(
+    verbose: bool = option_verbose,
+    configuration_path: Optional[Path] = option_configuration,
+    output_directory: Path = option_output_directory,
+    target_architecture: str = option_target_architecture,
+    search_paths: List[Path] = option_search_paths,
+    include_wheels: Optional[List[str]] = option_include_wheels,
+    exclude_wheels: Optional[List[str]] = option_exclude_wheels,
+    workers_count: int = option_workers_count,
+    force_build: bool = option_force_build,
+) -> None:
+    with print_summary_and_exit():
+        settings = load_configuration(configuration_path)
+        wheel_paths = filter_wheels(search_paths, include_wheels, exclude_wheels)
+        packages = convert_wheels(settings, output_directory, wheel_paths)
+        build_packages([p.root for p in packages], workers_count, force_build)
+
+
+@app.command(help="Convert wheels in search paths to debian source packages")
+def convert(
+    verbose: bool = option_verbose,
+    configuration_path: Optional[Path] = option_configuration,
+    output_directory: Path = option_output_directory,
+    target_architecture: str = option_target_architecture,
+    search_paths: List[Path] = option_search_paths,
+    include_wheels: Optional[List[str]] = option_include_wheels,
+    exclude_wheels: Optional[List[str]] = option_exclude_wheels,
+) -> None:
+    with print_summary_and_exit():
+        settings = load_configuration(configuration_path)
+        wheel_paths = filter_wheels(search_paths, include_wheels, exclude_wheels)
+        convert_wheels(settings, output_directory, wheel_paths)
+
+
+@app.command(help="Build debian packages from source packages.")
+def build(
+    verbose: bool = option_verbose,
+    output_directory: Path = option_output_directory,
+    workers_count: int = option_workers_count,
+    force_build: bool = option_force_build,
+) -> None:
+    with print_summary_and_exit():
+        build_all_packages(output_directory, workers_count, force_build)
+
+
+def main() -> None:
+    app()
