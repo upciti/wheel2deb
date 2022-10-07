@@ -1,4 +1,4 @@
-from _wheel2deb.tools import parse_debian_control
+from _wheel2deb.build import parse_debian_control
 
 DEBIAN_CONTROL = """\
 Source: python-absl-py

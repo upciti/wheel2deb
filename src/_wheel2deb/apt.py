@@ -4,8 +4,8 @@ from typing import Optional
 
 import attr
 
-from .logger import logging
-from .tools import shell
+from _wheel2deb.logger import logging
+from _wheel2deb.utils import shell
 
 # https://www.debian.org/doc/debian-policy/ch-controlfields.html#version
 PACKAGE_VER_RE = re.compile(
@@ -52,7 +52,7 @@ def search_packages(names, arch):
     if not names:
         return
 
-    logger.debug("searching %s in apt cache...", " ".join(names))
+    logger.debug(f"searching {' '.join(names)} in apt cache...")
 
     for name in names:
         yield search_package(name, arch)
