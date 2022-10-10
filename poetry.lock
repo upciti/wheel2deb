@@ -507,7 +507,7 @@ pyinstaller = ["pyinstaller"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "0237d3c46a27fd51b691da47578e6ae65b9667440457b97324a1d49e0b0439da"
+content-hash = "af77f08948387c99f25886df14caf9bc910b84691dd37637d418049d2671085b"
 
 [metadata.files]
 altgraph = [

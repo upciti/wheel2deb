@@ -2,6 +2,7 @@ import re
 from pathlib import Path
 from threading import Event, Thread
 from time import sleep
+from typing import List
 
 from wheel2deb import logger as logging
 from wheel2deb.utils import shell
@@ -48,16 +49,16 @@ def build_package(cwd: Path) -> int:
     return returncode
 
 
-def build_packages(paths, threads: int, force_build: bool) -> None:
+def build_packages(paths: List[Path], threads: int, force_build: bool) -> None:
     """
     Run several instances of dpkg-buildpackage in parallel.
     :param paths: List of paths where dpkg-buildpackage will be called
     :param threads: Number of threads to run in parallel
     """
 
+    paths = [p for p in paths if not Path(str(p) + ".deb").is_file() or force_build]
     logger.task(f"Building {len(paths)} source packages...")
 
-    paths = paths.copy()
     workers = []
     for i in range(threads):
         event = Event()
@@ -65,9 +66,8 @@ def build_packages(paths, threads: int, force_build: bool) -> None:
         workers.append(dict(done=event, path=None))
 
     def build(done, path):
-        if force_build is True or Path(str(path) + ".deb").is_file() is False:
-            logger.info(f"building {path}")
-            build_package(path)
+        logger.info(f"building {path}")
+        build_package(path)
         done.set()
 
     while False in [w["done"].is_set() for w in workers] or paths:

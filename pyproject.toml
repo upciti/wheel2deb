@@ -19,7 +19,6 @@ packages = [
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
 typer = ">=0.6.1"
-setuptools = "*"
 wheel = "*"
 pkginfo = "*"
 colorama = "*"
@@ -46,6 +45,7 @@ black = "*"
 isort = "*"
 types-PyYAML = "*"
 poetry-dynamic-versioning = ">=0.13.0"
+setuptools = "*"
 
 [tool.taskipy.tasks]
 check = """

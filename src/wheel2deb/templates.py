@@ -90,6 +90,14 @@ DEBIAN_RULES = """\
 override_dh_shlibdeps:
 	true
 
+override_dh_builddeb:
+	dh_builddeb -- -Zxz
+"""
+
+DEBIAN_ENTRYPOINT = """\
+#!/usr/bin/python{{pyvers.major}}
+from {{entrypoint.module}} import {{entrypoint.function}}
+{{entrypoint.function}}()
 """
 
 

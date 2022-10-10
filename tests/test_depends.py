@@ -1,6 +1,6 @@
 from wheel2deb.context import Context
 from wheel2deb.depends import get_dependency_string, search_python_deps, suggest_name
-from wheel2deb.pydist import Wheel
+from wheel2deb.pydist import parse_wheel
 from wheel2deb.pyvers import Version
 
 
@@ -17,7 +17,7 @@ def test_name_suggestion():
 
 def test_search_python_deps(wheel_path):
     ctx = Context()
-    wheel = Wheel(wheel_path)
+    wheel = parse_wheel(wheel_path)
     deps, missing_deps = search_python_deps(ctx, wheel)
 
     assert deps[0].startswith("python3-py (>= 0.1")

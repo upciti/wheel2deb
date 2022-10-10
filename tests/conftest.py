@@ -45,7 +45,7 @@ def wheel_path():
             url="http://perdu.com",
             packages=["foobar"],
             install_requires=["py>=0.1"],
-            entry_points={"console_scripts": ["entrypoint=foobar.test:entrypoint"]},
+            entry_points={"console_scripts": ["wheel2deb=wheel2deb.cli:main"]},
             python_requires="!=3.0.*, !=3.1.*, !=3.2.*, <4",
             version="0.1.0",
         )
