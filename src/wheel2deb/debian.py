@@ -1,19 +1,13 @@
-import configparser
-import os
 import re
-import shutil
-import tempfile
 from pathlib import Path
 from typing import List
 
 from dirsync import sync
-from setuptools.command.install_scripts import install_scripts
-from setuptools.dist import Distribution
 
 from wheel2deb import logger as logging
 from wheel2deb.context import Settings
 from wheel2deb.depends import normalize_package_version, search_python_deps, suggest_name
-from wheel2deb.pydist import Wheel
+from wheel2deb.pydist import Wheel, parse_wheel
 from wheel2deb.templates import environment
 from wheel2deb.utils import shell
 from wheel2deb.version import __version__
@@ -22,7 +16,6 @@ logger = logging.getLogger(__name__)
 dirsync_logger = logging.getLogger("dirsync")
 dirsync_logger.setLevel(logging.ERROR)
 
-EXTRACT_PATH = Path("/tmp/wheel2deb")
 
 COPYRIGHT_RE = re.compile(
     r"(?:copyrights?|\s*©|\s*\(c\))[\s:|,]*" r"((?=.*[a-z])\d{2,4}(?:(?!all\srights).)+)",
@@ -55,7 +48,7 @@ class SourcePackage:
     with dpkg-buildpackage from a python wheel
     """
 
-    def __init__(self, ctx, wheel, output, extras=None):
+    def __init__(self, ctx, wheel: Wheel, output, extras=None):
         self.wheel = wheel
         self.ctx = ctx
         self.pyvers = ctx.python_version
@@ -88,11 +81,10 @@ class SourcePackage:
 
         version_without_epoch = self.version.split(":")[-1]
         # debian package full filename
-        self.filename = "%s_%s_%s.deb" % (self.name, version_without_epoch, self.arch)
+        self.filename = f"{self.name}_{version_without_epoch}_{self.arch}.deb"
 
         # root directory of the debian source package
         self.root = Path(output) / self.filename[:-4]
-        # relative path to wheel.extract_path from self.root
         # contains the files extracted from the wheel
         self.src = Path("src")
         # debian directory path
@@ -111,59 +103,59 @@ class SourcePackage:
         self.interpreter = "python" if self.pyvers.major == 2 else "python3"
 
         # compute package run dependencies
-        self.depends = ["%s:any" % self.interpreter]
-        if wheel.version_range(self.pyvers):
-            vrange = wheel.version_range(self.pyvers)
+        self.depends = [f"{self.interpreter}:any"]
+        if vrange := wheel.version_range(self.pyvers):
             if vrange.max:
-                self.depends.append("%s (<< %s)" % (self.interpreter, vrange.max))
+                self.depends.append(f"{self.interpreter} (<< {vrange.max})")
             if vrange.min:
-                self.depends.append("%s (>= %s~)" % (self.interpreter, vrange.min))
+                self.depends.append(f"{self.interpreter} (>= {vrange.min}~)")
 
         deps, missing = search_python_deps(ctx, wheel, extras)
         self.depends.extend(deps)
         self.depends.extend(ctx.depends)
 
         # write unsatisfied requirements in missing.txt
-        with open(str(self.root / "missing.txt"), "w") as f:
-            f.write("\n".join(missing) + "\n")
+        (self.root / "missing.txt").write_text("\n".join(missing) + "\n")
+
+    def install_console_scripts(self) -> None:
+        output_path = self.root / "entrypoints"
+        output_path.mkdir(exist_ok=True)
+        for entrypoint in self.wheel.entrypoints:
+            template = environment.get_template("entrypoint")
+            script_path = str(output_path / entrypoint.name)
+            template.stream(pyvers=self.pyvers, entrypoint=entrypoint).dump(script_path)
+
+    def install(self):
+        """Generate debian/install"""
+
+        install = set()
 
         # wheel modules install path
         if self.pyvers.major == 2:
-            self.install_path = "/usr/lib/python2.7/dist-packages/"
+            destination_path = "/usr/lib/python2.7/dist-packages/"
         else:
-            self.install_path = "/usr/lib/python3/dist-packages/"
+            destination_path = "/usr/lib/python3/dist-packages/"
 
-    def install(self):
-        """
-        Generate debian/install
-        """
-        install = set()
-
-        for d in os.listdir(str(self.wheel.extract_path)):
-            if not d.endswith(".data"):
-                install.add(str(self.src / d) + " " + self.install_path)
+        for absolute_source_path in (self.root / self.src).iterdir():
+            source_path = absolute_source_path.relative_to(self.root)
+            if not source_path.name.endswith(".data"):
+                install.add(f"{source_path} {destination_path}")
             else:
-                purelib = self.wheel.extract_path / d / "purelib"
-                if purelib.exists():
-                    install.add(
-                        str(self.src / d / "purelib" / "*") + " " + self.install_path
-                    )
+                if (absolute_source_path / "purelib").exists():
+                    install.add(f"{source_path / 'purelib/*'} {destination_path}")
 
         if self.wheel.entrypoints and not self.ctx.ignore_entry_points:
-            self.run_install_scripts()
-            if (Path(self.root) / "entrypoints").exists():
-                install.add("entrypoints/* /usr/bin/")
+            self.install_console_scripts()
+            install.add("entrypoints/* /usr/bin/")
 
         for script in self.wheel.record.scripts:
-            install.add(str(self.src / script) + " /usr/bin/")
+            install.add(f"{self.src / script} /usr/bin")
 
-        with (self.debian / "install").open("w") as f:
-            f.write("\n".join(install))
+        (self.debian / "install").write_text("\n".join(install))
 
     def rules(self):
-        """
-        Generate debian/rules
-        """
+        """Generate debian/rules"""
+
         self.dump_template(
             "rules",
             shlibdeps_params="".join(
@@ -265,12 +257,8 @@ class SourcePackage:
         """
         shlibdeps = set()
         missing_libs = set()
-        shlibdeps_file = "shlibdeps.txt"
 
-        if (self.root / shlibdeps_file).exists():
-            shlibdeps = set((self.root / shlibdeps_file).read_text().split("\n"))
-
-        if self.wheel.record.lib_dirs and not shlibdeps:
+        if self.wheel.record.lib_dirs:
             args = (
                 ["dpkg-shlibdeps"]
                 + ["-l" + str(self.src / x) for x in self.wheel.record.lib_dirs]
@@ -303,55 +291,14 @@ class SourcePackage:
 
                 if len(packages) > 1:
                     logger.warning(
-                        "several packages providing %s: %s, picking %s, "
-                        "edit debian/control to use another one.",
-                        lib,
-                        packages,
-                        packages[0],
+                        f"several packages providing {lib}: {packages}, picking "
+                        f"{packages[0]}, edit debian/control to use another one."
                     )
 
-            with open(str(self.root / shlibdeps_file), "w") as f:
-                f.write("\n".join(shlibdeps))
-
         if shlibdeps:
-            logger.info("detected dependencies: %s", shlibdeps)
+            logger.info(f"detected dependencies: {shlibdeps}")
 
         self.depends = list(set(self.depends) | shlibdeps)
-
-    def run_install_scripts(self):
-
-        config = configparser.ConfigParser()
-        config.read_string(self.wheel.entrypoints)
-
-        entrypoints = {}
-        for section in config:
-            x = ["%s=%s" % k for k in config.items(section)]
-            if x:
-                entrypoints[section] = x
-
-        settings = dict(
-            name=self.wheel.name,
-            entry_points=entrypoints,
-            version=self.wheel.version,
-        )
-
-        dist = Distribution(settings)
-        dist.script_name = "setup.py"
-        cmd = install_scripts(dist)
-        cmd.install_dir = str((self.root / "entrypoints").absolute())
-        bs = cmd.get_finalized_command("build_scripts")
-        bs.executable = "/usr/bin/python" + str(self.pyvers.major)
-        cmd.ensure_finalized()
-
-        # cmd.run() creates some files that we don't want in python cwd
-        oldcwd = os.getcwd()
-        tempdir = tempfile.mkdtemp()
-        os.chdir(tempdir)
-        try:
-            cmd.run()
-        finally:
-            os.chdir(oldcwd)
-            shutil.rmtree(tempdir, ignore_errors=True)
 
 
 def convert_wheels(
@@ -364,35 +311,35 @@ def convert_wheels(
 
     if output_directory.is_dir() is False:
         logger.error(f"{output_directory} is not a directory")
-        return
+        return []
 
     if wheel_paths:
         logger.task("Unpacking %s wheels", len(wheel_paths))
 
     wheels = []
     for file in wheel_paths:
-        wheel = Wheel(file, EXTRACT_PATH / file.name[:-4])
-        ctx = settings.get_ctx(wheel.filename)
+        wheel = parse_wheel(file)
+        ctx = settings.get_ctx(wheel.wheel_name)
 
         if not wheel.cpython_supported:
             # ignore wheels that are not cpython compatible
-            logger.warning(f"{wheel.filename} does not support cpython")
+            logger.warning(f"{wheel.wheel_name} does not support cpython")
             continue
 
         if not wheel.version_supported(ctx.python_version):
             # ignore wheels that are not compatible specified python version
             logger.warning(
-                f"{wheel.filename} does not support python {ctx.python_version}"
+                f"{wheel.wheel_name} does not support python {ctx.python_version}"
             )
             continue
 
-        logger.info("%s", wheel.filename)
+        logger.info("%s", wheel.wheel_name)
         wheels.append(wheel)
 
     packages = []
     for wheel in wheels:
         logger.task(f"Converting wheel {wheel}")
-        ctx = settings.get_ctx(wheel.filename)
+        ctx = settings.get_ctx(wheel.wheel_name)
         package = SourcePackage(ctx, wheel, output_directory, extras=wheels)
         package.create()
         packages.append(package)

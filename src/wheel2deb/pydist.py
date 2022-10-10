@@ -1,9 +1,10 @@
-import glob
+import configparser
 import os.path
 import re
-from functools import lru_cache
+from dataclasses import dataclass
+from functools import cached_property, lru_cache
 from pathlib import Path
-from tempfile import mkdtemp
+from typing import List
 
 import attr
 from packaging import specifiers, version
@@ -16,10 +17,28 @@ from wheel2deb.pyvers import Version, VersionRange
 
 logger = logging.getLogger(__name__)
 
+EXTRACT_PATH = Path("/tmp/wheel2deb")
+
 WHEEL_NAME_RE = re.compile(
     r"^(?P<name>.+)-(?P<version>.+)-(?P<python_tag>[pcij].+)"
     r"-(?P<abi_tag>.+)-(?P<platform_tag>.+).whl$"
 )
+
+
+def normalize_name(name):
+    """
+    All comparisons of distribution names MUST be case insensitive,
+    and MUST consider hyphens and underscores to be equivalent.
+    https://www.python.org/dev/peps/pep-0426/#name
+    """
+    return name.replace("-", "_").lower()
+
+
+@dataclass
+class Entrypoint:
+    name: str
+    module: str
+    function: str
 
 
 @attr.s(frozen=True)
@@ -74,32 +93,39 @@ class Metadata(Distribution):
 
 
 class Wheel:
-    def __init__(self, filepath, extract_path=None):
+    def __init__(self, wheel_name: str, extract_path: Path) -> None:
+        self.wheel_name = wheel_name
+        self.extract_path = extract_path
+        self.info_dir = list(self.extract_path.glob("*.dist-info"))[0]
 
-        # relative path to wheel file
-        self.filepath = Path(filepath)
-        self.filename = self.filepath.name
-        self.extract_path = (
-            Path(extract_path) if extract_path else Path(mkdtemp()) / self.filename[:-4]
-        )
-
-        if not filepath.exists():
-            raise ValueError(f"No such file: {filepath}")
-
-        if not self.filename.endswith(".whl"):
-            raise ValueError(f"Not a known wheel archive format: {filepath}")
-
-        # parse wheel name
-        # https://www.python.org/dev/peps/pep-0425
-        g = re.match(WHEEL_NAME_RE, self.filename).groupdict()
+        # parse wheel name, see https://www.python.org/dev/peps/pep-0425
+        g = re.match(WHEEL_NAME_RE, self.wheel_name).groupdict()
         self.name = normalize_name(g["name"])
         self.version = g["version"]
         self.python_tag = g["python_tag"]
         self.abi_tag = g["abi_tag"]
         self.platform_tag = g["platform_tag"]
 
-        self._unpack()
-        self._parse()
+    @cached_property
+    def metadata(self) -> Metadata:
+        return Metadata((self.info_dir / "METADATA").read_text())
+
+    @cached_property
+    def record(self) -> Record:
+        return Record.from_str((self.info_dir / "RECORD").read_text())
+
+    @cached_property
+    def entrypoints(self) -> List[Entrypoint]:
+        entrypoints = []
+        try:
+            config = configparser.ConfigParser()
+            config.read_string((self.info_dir / "entry_points.txt").read_text())
+            if "console_scripts" in config.sections():
+                name, path = config.items("console_scripts")[0]
+                entrypoints.append(Entrypoint(name, *(path.split(":"))))
+        except FileNotFoundError:
+            pass
+        return entrypoints
 
     def requires(self, env=None):
         if not env:
@@ -113,9 +139,9 @@ class Wheel:
             req.name = normalize_name(req.name)
         return reqs
 
-    @lru_cache(maxsize=None)
+    @lru_cache
     def version_range(self, pyvers):
-        m = re.search(r"(\d)(\d)", self.python_tag)
+        m = re.search(r"(\d)(\d+)", self.python_tag)
         if m:
             v = Version(*m.groups())
             if pyvers.major != v.major:
@@ -141,7 +167,7 @@ class Wheel:
         # supported by that wheel
         return None
 
-    @lru_cache(maxsize=None)
+    @lru_cache
     def version_supported(self, pyvers):
         m = re.search(r"(?:py|cp)%s" % pyvers.major, self.python_tag)
         if not m:
@@ -156,47 +182,20 @@ class Wheel:
         python_version = version.parse(str(pyvers))
         return python_version in requires_python_specifier
 
-    @property
-    @lru_cache(maxsize=None)
+    @cached_property
     def cpython_supported(self):
         if re.search(r"(?:py|cp)", self.python_tag):
             return True
         return False
 
-    def _unpack(self):
-        """
-        Unpack wheel archive
-        """
-        if self.extract_path.exists():
-            return
-
-        with WheelFile(str(self.filepath)) as wf:
-            logger.debug(f"unpacking wheel to: {self.extract_path}...")
-            wf.extractall(str(self.extract_path))
-
     def __repr__(self):
-        return self.filename
-
-    def _parse(self):
-        info_dir = Path(glob.glob(str(self.extract_path / "*.dist-info"))[0])
-
-        # parse .dist-info/METADATA
-        self.metadata = Metadata((info_dir / "METADATA").read_text())
-
-        # parse .dist-info/RECORD
-        self.record = Record.from_str((info_dir / "RECORD").read_text())
-
-        try:
-            # parse .dist-info/entry_points.txt
-            self.entrypoints = (info_dir / "entry_points.txt").read_text()
-        except FileNotFoundError:
-            self.entrypoints = None
+        return self.wheel_name
 
 
-def normalize_name(name):
-    """
-    All comparisons of distribution names MUST be case insensitive,
-    and MUST consider hyphens and underscores to be equivalent.
-    https://www.python.org/dev/peps/pep-0426/#name
-    """
-    return name.replace("-", "_").lower()
+def parse_wheel(wheel_path: Path, base_extract_path: Path = EXTRACT_PATH) -> Wheel:
+    extract_path = base_extract_path / wheel_path.name[:-4]
+    if extract_path.exists() is False:
+        with WheelFile(str(wheel_path)) as wf:
+            logger.debug(f"unpacking wheel to: {extract_path}...")
+            wf.extractall(str(extract_path))
+    return Wheel(wheel_path.name, extract_path)
