@@ -306,12 +306,11 @@ def convert_wheels(
     output_directory: Path,
     wheel_paths: List[Path],
 ) -> List[SourcePackage]:
-    if output_directory.exists() is False:
-        output_directory.mkdir(exist_ok=True)
-
-    if output_directory.is_dir() is False:
+    if output_directory.exists() is True and output_directory.is_dir() is False:
         logger.error(f"{output_directory} is not a directory")
         return []
+
+    output_directory.mkdir(exist_ok=True, parents=True)
 
     if wheel_paths:
         logger.task("Unpacking %s wheels", len(wheel_paths))

@@ -25,16 +25,15 @@ def sha256sum():
 
 @pytest.fixture(scope="module")
 def wheel_path():
-    """
-    Create a dummy python wheel
-    """
+    """Create a dummy python wheel"""
 
     tmp_path = Path(mkdtemp())
     os.chdir(str(tmp_path))
-    (tmp_path / "foobar").mkdir()
+    src_path = tmp_path / "foobar"
+    src_path.mkdir()
 
-    open("foobar/test.py", "w").close()
-    open("foobar/__init__.py", "w").close()
+    (src_path / "test.py").touch()
+    (src_path / "__init__.py").touch()
 
     with patch.object(sys, "argv", ["", "bdist_wheel"]):
         from setuptools import setup
