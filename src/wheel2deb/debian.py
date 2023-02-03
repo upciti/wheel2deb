@@ -209,7 +209,6 @@ class SourcePackage:
         # FIXME: licenses should not be copied by the install script
 
     def create(self):
-
         if not self.debian.exists():
             self.debian.mkdir(parents=True)
 
