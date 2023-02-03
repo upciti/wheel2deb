@@ -12,7 +12,7 @@ from packaging.requirements import Requirement
 from pkginfo import Distribution
 from wheel.wheelfile import WheelFile
 
-from wheel2deb.logger import logging
+from wheel2deb import logger as logging
 from wheel2deb.pyvers import Version, VersionRange
 
 logger = logging.getLogger(__name__)

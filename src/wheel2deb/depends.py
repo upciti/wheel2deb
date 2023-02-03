@@ -2,8 +2,8 @@ import re
 
 from packaging.version import parse
 
+from wheel2deb import logger as logging
 from wheel2deb.apt import search_packages
-from wheel2deb.logger import logging
 
 logger = logging.getLogger(__name__)
 

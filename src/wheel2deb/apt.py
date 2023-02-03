@@ -4,7 +4,7 @@ from typing import Optional
 
 import attr
 
-from wheel2deb.logger import logging
+from wheel2deb import logger as logging
 from wheel2deb.utils import shell
 
 # https://www.debian.org/doc/debian-policy/ch-controlfields.html#version
