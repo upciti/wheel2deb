@@ -19,8 +19,10 @@ The following shows how to convert numpy and pytest, along with their dependenci
 ```sh
 # Download (and build if needed) pytest, numpy and their requirements
 pip3 wheel pytest numpy
-# Convert all wheels to debian source packages, build them with dpkg-buildpackage
+# Convert all wheels to debian source packages
 wheel2deb
+# Build the packages with dpkg-buildpackage
+wheel2deb build
 ls -l output/*.deb
 # Install generated packages
 dpkg -i output/*.deb
