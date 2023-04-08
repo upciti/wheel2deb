@@ -47,7 +47,7 @@ class Record:
     Entries of *.dist-info/RECORD organized in categories
     """
 
-    LICENSE_RE = re.compile(r"license", re.IGNORECASE)
+    LICENSE_RE = re.compile(r"(^|[^\w])license(\..*)?$", re.IGNORECASE)
     SHLIBS_RE = re.compile(r"\.so[.\d]*")
 
     libs = attr.ib(factory=list)
