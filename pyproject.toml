@@ -56,7 +56,7 @@ pyinstaller --onefile src/wheel2deb/__main__.py --name wheel2deb -s
 """
 
 [tool.ruff]
-exclude = [".venv"]
+exclude = [".venv", "src/wheel2deb/templates.py"]
 line-length = 90
 src = ["src", "tests"]
 
@@ -76,7 +76,6 @@ select = [
     # Performance lints
     "PERF101", # Avoids casting to list to use as iterators
     "PERF102", # Avoids looping over keys xor values using for dict.items()
-    "PERF401", # Checks where a comprhension should be used
     "PERF402", # Checks if a for loop has been used to copy a list
     "RUF015",  # Checks for the usage of a list to get a single element from an iterator
     "PIE810",  # Checks if startswith or endswith calls could be combined in a single call

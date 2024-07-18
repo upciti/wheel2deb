@@ -182,7 +182,7 @@ class SourcePackage:
             content = (self.wheel.extract_path / lic).read_text()
             copyrights.update(set(re.findall(COPYRIGHT_RE, content)))
 
-        copyrights = sorted(list(copyrights))
+        copyrights = sorted(copyrights)
 
         logger.debug("found the following copyrights: %s", copyrights)
 

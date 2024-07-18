@@ -49,7 +49,7 @@ def test_convert__should_install_entrypoints_in_usr_bin_directory_with_the_right
     assert source_package_path.exists() is True
     entrypoint = source_package_path / "entrypoints/wheel2deb"
     assert entrypoint.exists() is True
-    shebang = list(entrypoint.read_text().splitlines())[0]
+    shebang = next(iter(entrypoint.read_text().splitlines()))
     assert shebang == "#!/usr/bin/python3"
 
 

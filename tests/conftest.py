@@ -49,4 +49,4 @@ def wheel_path():
             version="0.1.0",
         )
 
-    return list(tmp_path.glob("dist/*.whl"))[0]
+    return next(iter(tmp_path.glob("dist/*.whl")))

@@ -63,7 +63,7 @@ def build_packages(paths: List[Path], threads: int, force_build: bool) -> None:
     for i in range(threads):
         event = Event()
         event.set()
-        workers.append(dict(done=event, path=None))
+        workers.append({"done": event, "path": None})
 
     def build(done, path):
         logger.info(f"building {path}")

@@ -79,7 +79,7 @@ class Record:
                 # everything else
                 record.files.append(file)
 
-        record.lib_dirs.extend(list(set(os.path.dirname(x) for x in record.libs)))
+        record.lib_dirs.extend(list({os.path.dirname(x) for x in record.libs}))
 
         return record
 
@@ -96,7 +96,7 @@ class Wheel:
     def __init__(self, wheel_name: str, extract_path: Path) -> None:
         self.wheel_name = wheel_name
         self.extract_path = extract_path
-        self.info_dir = list(self.extract_path.glob("*.dist-info"))[0]
+        self.info_dir = next(iter(self.extract_path.glob("*.dist-info")))
 
         # parse wheel name, see https://www.python.org/dev/peps/pep-0425
         g = re.match(WHEEL_NAME_RE, self.wheel_name).groupdict()
