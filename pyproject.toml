@@ -40,40 +40,47 @@ wheel2deb = "wheel2deb.cli:main"
 pytest = "*"
 taskipy = "*"
 pytest-cov = "*"
-flake8 = "*"
-black = "*"
-isort = "*"
+ruff = "*"
 types-PyYAML = "*"
 poetry-dynamic-versioning = ">=0.13.0"
 setuptools = "*"
 
 [tool.taskipy.tasks]
 check = """
-isort src tests\
- && black src tests\
- && flake8 src tests\
+ruff format\
+ && ruff check --fix\
  && pytest --cov src tests\
 """
 single_binary_application = """
 pyinstaller --onefile src/wheel2deb/__main__.py --name wheel2deb -s
 """
 
-[tool.black]
+[tool.ruff]
+exclude = [".venv"]
 line-length = 90
-target_version = ['py310']
-exclude = '''
-(
-  /(
-    | \.git
-    | \.venv
-    | \.mypy_cache
-  )/
-)
-'''
+src = ["src", "tests"]
 
-[tool.isort]
-line_length = 90
-profile = "black"
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "F",  # pyflakes checks
+    "W",  # pycodestyle warnings
+    "I001",  # Imports sorting
+    "C4",  # Rules related to comprehensions
+    "RUF100",  # Unused noqa
+    "PGH004", # Ensure there is a reason for a noqa
+    "G010", # Checks for usage of deprecated logging.warn
+    "PGH005", # Protects from fogetting parenthesis on a mock method
+    "PIE807", # Checks if lambda has been used instead of collection constructor
+    "T20", # Ensures no prints are left in the code
+    # Performance lints
+    "PERF101", # Avoids casting to list to use as iterators
+    "PERF102", # Avoids looping over keys xor values using for dict.items()
+    "PERF401", # Checks where a comprhension should be used
+    "PERF402", # Checks if a for loop has been used to copy a list
+    "RUF015",  # Checks for the usage of a list to get a single element from an iterator
+    "PIE810",  # Checks if startswith or endswith calls could be combined in a single call
+]
 
 [build-system]
 requires = ["poetry>=1.0.2", "poetry-dynamic-versioning"]

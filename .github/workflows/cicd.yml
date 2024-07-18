@@ -44,14 +44,11 @@ jobs:
             debhelper
             fakeroot
 
-      - name: Run black
-        run: poetry run black src tests --check
+      - name: Run ruff format
+        run: poetry run ruff format
 
-      - name: Run isort
-        run: poetry run isort src tests --check
-
-      - name: Run flake8
-        run: poetry run flake8 src tests
+      - name: Run ruff check
+        run: poetry run ruff check
 
       - name: Run pytest
         run: poetry run pytest --cov=src --cov-report=term-missing tests
