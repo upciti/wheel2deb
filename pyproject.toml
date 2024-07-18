@@ -25,9 +25,9 @@ colorama = "*"
 attrs = ">=20.1"
 packaging = "*"
 dirsync = "*"
-PyYAML = "^6"
+PyYAML = "*"
 Jinja2 = "^3"
-pyinstaller = { version = "5.4.1", optional = true }
+pyinstaller = { version = "*", optional = true }
 rich = "*"
 
 [tool.poetry.extras]
@@ -43,7 +43,7 @@ pytest-cov = "*"
 ruff = "*"
 types-PyYAML = "*"
 poetry-dynamic-versioning = ">=0.13.0"
-setuptools = "*"
+setuptools = "!=71.0.0,!=71.0.1"
 
 [tool.taskipy.tasks]
 check = """
