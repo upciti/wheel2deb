@@ -771,5 +771,5 @@ pyinstaller = ["pyinstaller"]
 
 [metadata]
 lock-version = "2.0"
-python-versions = ">=3.10,<3.11"
-content-hash = "e6dd434a29a58620bced1f11852b47034cd6cea5b46927d1657414d127fc31bf"
+python-versions = ">=3.10,<3.12"
+content-hash = "df6eeb10ced5e40a43b66b5b1d34c75c1718f39d6460de933d4bb8a1a1fdc496"

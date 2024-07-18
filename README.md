@@ -56,7 +56,7 @@ Keep in mind that you should only convert wheels that have been built for your d
 
 ### From the release page
 
-`wheel2deb` is packaged as a single binary application that you can download from the release page. Using those releases will spare you the hassle of building Python 3.10 on old Debian based distributions.
+`wheel2deb` is packaged as a single binary application that you can download from the release page. Using those releases will spare you the hassle of building Python 3.11 on old Debian based distributions.
 
 ### With [wakemeops](https://docs.wakemeops.com)
 
@@ -99,7 +99,7 @@ Use `wheel2deb convert --help` and `wheel2deb build --help` to check all support
 
 ## Development
 
-You will need [poetry](https://python-poetry.org/), and probably [pyenv](https://github.com/pyenv/pyenv) if you don't have python 3.10 on your host.
+You will need [poetry](https://python-poetry.org/), and probably [pyenv](https://github.com/pyenv/pyenv) if you don't have python 3.11 on your host.
 
 ```shell
 poetry install

@@ -17,7 +17,7 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.11"
+python = ">=3.10,<3.12"
 typer = ">=0.6.1"
 wheel = "*"
 pkginfo = "*"
