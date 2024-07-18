@@ -101,7 +101,11 @@ def search_python_deps(ctx, wheel, extras=None):
         else:
             return True
 
+    # remove ignored requirements
     requirements = list(filter(is_required, requirements))
+
+    # remove duplicates
+    requirements = list(set(requirements))
 
     # translate requirements to debian package names
     # and search them in apt cache

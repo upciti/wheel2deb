@@ -142,11 +142,14 @@ class Wheel:
     @lru_cache
     def version_range(self, pyvers):
         m = re.search(r"(\d)(\d+)", self.python_tag)
+
         if m:
             v = Version(*m.groups())
             if pyvers.major != v.major:
                 return None
             else:
+                if self.abi_tag == "abi3":
+                    return VersionRange(v, None)
                 return VersionRange(v, v.inc())
 
         # TODO: use requires_python ?
