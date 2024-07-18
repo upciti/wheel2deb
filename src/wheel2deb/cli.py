@@ -13,6 +13,7 @@ from wheel2deb.build import build_all_packages, build_packages
 from wheel2deb.context import load_configuration
 from wheel2deb.debian import convert_wheels
 from wheel2deb.logger import enable_debug
+from wheel2deb.version import __version__
 
 logger = logging.getLogger(__name__)
 
@@ -190,6 +191,11 @@ def build(
 ) -> None:
     with print_summary_and_exit():
         build_all_packages(output_directory, workers_count, force_build)
+
+
+@app.command(help="Output wheel2deb version.")
+def version() -> None:
+    typer.echo(__version__)
 
 
 def main() -> None:

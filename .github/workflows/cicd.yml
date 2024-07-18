@@ -66,6 +66,7 @@ jobs:
           poetry install --extras pyinstaller
           poetry run poetry-dynamic-versioning
           poetry run pyinstaller --onefile src/wheel2deb/__main__.py --name wheel2deb -s
+          dist/wheel2deb version
           dist/wheel2deb
           mv dist/wheel2deb wheel2deb_linux_amd64
 
