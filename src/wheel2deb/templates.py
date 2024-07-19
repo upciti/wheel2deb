@@ -92,6 +92,10 @@ override_dh_shlibdeps:
 
 override_dh_builddeb:
 	dh_builddeb -- -Zxz
+
+
+override_dh_strip:
+	dh_strip --exclude=/dist-packages/
 """
 
 DEBIAN_ENTRYPOINT = """\
