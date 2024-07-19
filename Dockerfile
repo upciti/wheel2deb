@@ -11,7 +11,9 @@ RUN install_packages \
     binutils-aarch64-linux-gnu \
     git \
     ca-certificates \
-    apt-file
+    apt-file \
+    curl \
+    gnupg
 
 RUN dpkg --add-architecture armhf && \
     dpkg --add-architecture arm64
