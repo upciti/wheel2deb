@@ -144,3 +144,53 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
+
+  publish_image:
+    runs-on: ubuntu-latest
+    needs: [test_and_build]
+    if: github.event.repository.fork == false && startsWith(github.ref, 'refs/tags')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: wheel2deb_linux_amd64
+
+      - name: Set execute permission
+        run: chmod +x wheel2deb_linux_amd64
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set docker image tags and labels
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/upciti/wheel2deb
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=ref,event=branch
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          build-args: |
+            WHEEL2DEB_PATH=wheel2deb_linux_amd64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Check Docker image
+        run: docker run --rm -i ghcr.io/${{ github.event.repository.full_name }}:latest --help
+
+      - name: Publish Docker image
+        run: |
+          docker push --all-tags ghcr.io/${{ github.event.repository.full_name }}

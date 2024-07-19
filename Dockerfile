@@ -1,40 +1,20 @@
-FROM python:3.8-buster AS builder
-RUN apt-get -yq update \
- && apt-get -yq --no-install-suggests --no-install-recommends install \
-    git \
- && apt-get clean
-COPY . /src
-RUN cd src && python3 setup.py bdist_wheel
+FROM wakemeops/debian:bookworm
 
+ARG WHEEL2DEB_PATH="dist/wheel2deb"
+COPY ${WHEEL2DEB_PATH} /usr/local/bin/wheel2deb
 
-FROM debian:buster AS base
-
-RUN dpkg --add-architecture armhf \
- && apt-get -yq update \
- && apt-get -yq --no-install-suggests --no-install-recommends install \
-    libc6:armhf \
-    binutils-arm-linux-gnueabihf \
+RUN install_packages \
     build-essential \
-    debhelper \
-    devscripts \
     fakeroot \
-    lintian \
-    apt-file \
-    python3-distutils \
-    python3-apt \
-    curl \
- && apt-get clean
+    debhelper \
+    binutils-arm-linux-gnueabihf \
+    binutils-aarch64-linux-gnu \
+    git \
+    ca-certificates \
+    apt-file
 
-RUN curl -nSL https://bootstrap.pypa.io/get-pip.py > /tmp/get-pip.py \
-    && chmod +x /tmp/get-pip.py \
-    && python3 /tmp/get-pip.py \
-    && rm /tmp/get-pip.py
+RUN dpkg --add-architecture armhf && \
+    dpkg --add-architecture arm64
 
-RUN pip3 install --no-cache-dir pytest pytest-cov
-
-COPY --from=builder /src/dist/*.whl /
-RUN pip3 install --no-cache-dir /*.whl && rm /*.whl
-
-VOLUME /data
-WORKDIR /data
 ENTRYPOINT ["wheel2deb"]
+USER 1000
