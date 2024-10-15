@@ -70,6 +70,8 @@ def suggest_name(ctx, wheel_name):
 def suggest_names(ctx, wheel_names):
     for wheel_name in wheel_names:
         yield suggest_name(ctx, wheel_name)
+        if wheel_name[:2] == "py":
+            yield suggest_name(ctx, wheel_name[2:])
 
 
 def search_python_deps(ctx, wheel, extras=None):
