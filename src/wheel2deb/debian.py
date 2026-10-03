@@ -115,6 +115,7 @@ class SourcePackage:
         self.depends.extend(ctx.depends)
 
         # write unsatisfied requirements in missing.txt
+        self.root.mkdir(parents=True, exist_ok=True)
         (self.root / "missing.txt").write_text("\n".join(missing) + "\n")
 
     def install_console_scripts(self) -> None:

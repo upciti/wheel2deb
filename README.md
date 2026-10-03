@@ -66,16 +66,46 @@ sudo apt-get install wheel2deb
 
 ### With docker
 
-We currently do not build docker images with `wheel2deb` pre-installed. You can use wakemeops docker images to quickly play with `wheel2deb` on a different distribution than your host.
+Pre-built images are published to **GitHub Container Registry**:
 
 ```shell
-docker run -ti wakemeops/debian:buster
+docker pull ghcr.io/upciti/wheel2deb:latest
+docker run --rm ghcr.io/upciti/wheel2deb --help
 ```
 
-And in the container run:
+Or build from source using the multi-stage Dockerfile:
 
+```shell
+docker build -t wheel2deb .
+docker run --rm wheel2deb --help
 ```
-install_packages wheel2deb
+
+To build a specific version (CI), pass the VERSION build arg:
+
+```shell
+docker build --build-arg VERSION=1.2.3 -t wheel2deb .
+docker run --rm wheel2deb version
+# Output: 1.2.3
+```
+
+**Example: convert requests wheel to .deb**
+
+```shell
+# 1. Download wheel
+pip wheel requests -w wheels/ --no-deps
+
+# 2. Prepare output dir (UID 1000 = container user)
+sudo mkdir -p output && sudo chown -R 1000:1000 output/
+
+# 3. Convert wheel to deb
+docker run --rm \
+  -v "$PWD/wheels:/wheels" \
+  -v "$PWD/output:/home/user/output" \
+  ghcr.io/upciti/wheel2deb:latest \
+  --search-path /wheels
+
+# 4. Install
+sudo dpkg -i output/python3-requests_*.deb
 ```
 
 ### With [pipx](https://github.com/pipxproject/pipx)
